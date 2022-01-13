@@ -72,10 +72,10 @@ namespace beam
         {
             struct Code
             {
-                ByteBuffer m_DappsStore;
+                ByteBuffer m_DAppsStore;
             } m_Code;
 
-            ContractID m_cidDappsStore;
+            ContractID m_cidDAppsStore;
 
             void CallFar(const ContractID& cid, uint32_t iMethod, Wasm::Word pArgs, uint8_t bInheritContext) override
             {
@@ -126,7 +126,7 @@ namespace beam
 
         void MyProcessor::TestAll()
         {
-            AddCode(m_Code.m_DappsStore, "dapps_store_contract.wasm");
+            AddCode(m_Code.m_DAppsStore, "dapps_store_contract.wasm");
         }
 
         struct CidTxt
