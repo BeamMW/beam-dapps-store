@@ -49,12 +49,16 @@ namespace manager
         Env::DocGet(CONTRACT_ID, cid);
 
         DAppsStore::AddPublisher args;
-        Env::DocGet(PUBLISHER, args.m_Publisher);
+        Env::DerivePk(args.m_Publisher, &cid, sizeof(cid));
         args.m_LabelSize = Env::DocGetText(LABEL, args.m_Label, DAppsStore::Publisher::LABEL_MAX_SIZE);
 
         // TODO check size of label
 
-        Env::GenerateKernel(&cid, args.s_iMethod, &args, sizeof(args), nullptr, 0, nullptr, 0, "add publisher to store", 0);
+        SigRequest sig;
+        sig.m_pID = &cid;
+        sig.m_nID = sizeof(cid);
+
+        Env::GenerateKernel(&cid, args.s_iMethod, &args, sizeof(args), nullptr, 0, &sig, 1, "add publisher to store", 0);
     }
 
     void ViewPublishers()
@@ -84,13 +88,17 @@ namespace manager
         Env::DocGet(CONTRACT_ID, cid);
 
         DAppsStore::AddDApp args;
-        Env::DocGet(PUBLISHER, args.m_Publisher);
+        Env::DerivePk(args.m_Publisher, &cid, sizeof(cid));
         Env::DocGetBlobEx(IPFS_ID, &args.m_IPFSId, sizeof(args.m_IPFSId));
         args.m_LabelSize = Env::DocGetText(LABEL, args.m_Label, DAppsStore::DApp::LABEL_MAX_SIZE);
 
         // TODO check size of label
 
-        Env::GenerateKernel(&cid, args.s_iMethod, &args, sizeof(args), nullptr, 0, nullptr, 0, "add dapp to store", 0);
+        SigRequest sig;
+        sig.m_pID = &cid;
+        sig.m_nID = sizeof(cid);
+
+        Env::GenerateKernel(&cid, args.s_iMethod, &args, sizeof(args), nullptr, 0, &sig, 1, "add dapp to store", 0);
     }
 
     void ViewDApps()
@@ -134,7 +142,6 @@ BEAM_EXPORT void Method_0()
     {
         Env::DocGroup grMethod("add_publisher");
         Env::DocAddText(CONTRACT_ID, "ContractID");
-        Env::DocAddText(PUBLISHER, "PubKey");
         Env::DocAddText(LABEL, "string");
     }
     {
@@ -144,7 +151,6 @@ BEAM_EXPORT void Method_0()
     {
         Env::DocGroup grMethod("add_dapp");
         Env::DocAddText(CONTRACT_ID, "ContractID");
-        Env::DocAddText(PUBLISHER, "PubKey");
         Env::DocAddText(IPFS_ID, "IPFSCID");
         Env::DocAddText(LABEL, "string");
     }

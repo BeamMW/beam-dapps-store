@@ -12,6 +12,8 @@ BEAM_EXPORT void Method_2(const DAppsStore::AddPublisher& args)
 {
     Env::Halt_if(args.m_LabelSize >= DAppsStore::Publisher::LABEL_MAX_SIZE);
 
+    Env::AddSig(args.m_Publisher);
+
     DAppsStore::Publisher::Key key;
     _POD_(key.m_PubKey) = args.m_Publisher;
 
@@ -32,6 +34,8 @@ BEAM_EXPORT void Method_4(const DAppsStore::DeletePublisher& /*args*/)
 BEAM_EXPORT void Method_5(const DAppsStore::AddDApp& args)
 {
     Env::Halt_if(args.m_LabelSize >= DAppsStore::DApp::LABEL_MAX_SIZE);
+
+    Env::AddSig(args.m_Publisher);
 
     DAppsStore::DApp dapp;
     _POD_(dapp.m_IPFSId) = args.m_IPFSId;
