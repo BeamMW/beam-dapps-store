@@ -44,53 +44,55 @@ namespace DAppsStore
         char m_Label[LABEL_MAX_SIZE];
     };
 
-    struct Create
+    namespace Method
     {
-        static const uint32_t s_iMethod = 0;
-    };
+        struct Create
+        {
+            static const uint32_t s_iMethod = 0;
+        };
 
-    struct AddPublisher
-    {
-        static const uint32_t s_iMethod = 2;
+        struct AddPublisher
+        {
+            static const uint32_t s_iMethod = 2;
 
-        PubKey m_Publisher;
-        uint32_t m_LabelSize;
-        char m_Label[Publisher::LABEL_MAX_SIZE];
-    };
+            PubKey m_Publisher;
+            uint32_t m_LabelSize;
+            char m_Label[Publisher::LABEL_MAX_SIZE];
+        };
 
-    struct UpdatePublisher
-    {
-        static const uint32_t s_iMethod = 3;
+        struct UpdatePublisher
+        {
+            static const uint32_t s_iMethod = 3;
 
-        PubKey m_Publisher;
-    };
+            PubKey m_Publisher;
+        };
 
-    struct DeletePublisher
-    {
-        static const uint32_t s_iMethod = 4;
+        struct DeletePublisher
+        {
+            static const uint32_t s_iMethod = 4;
 
-        PubKey m_Publisher;
-    };
+            PubKey m_Publisher;
+        };
 
-    struct AddDApp
-    {
-        static const uint32_t s_iMethod = 5;
+        struct AddDApp
+        {
+            static const uint32_t s_iMethod = 5;
 
-        PubKey m_Publisher;
-        IPFSCID m_IPFSId;
-        uint32_t m_LabelSize;
-        char m_Label[DApp::LABEL_MAX_SIZE];
-    };
+            PubKey m_Publisher;
+            IPFSCID m_IPFSId;
+            uint32_t m_LabelSize;
+            char m_Label[DApp::LABEL_MAX_SIZE];
+        };
 
-    struct UpdateDApp
-    {
-        static const uint32_t s_iMethod = 6;
-    };
+        struct UpdateDApp
+        {
+            static const uint32_t s_iMethod = 6;
+        };
 
-    struct DeleteDApp
-    {
-        static const uint32_t s_iMethod = 7;
-    };
-
+        struct DeleteDApp
+        {
+            static const uint32_t s_iMethod = 7;
+        };
+    } // namespace Method
 #pragma pack (pop)
 } // namespace DappsStore

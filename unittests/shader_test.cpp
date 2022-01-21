@@ -30,7 +30,7 @@ namespace Shaders
         }
     }
 
-    namespace DappsStore
+    namespace DAppsStore
     {
 #include "../shaders/dapps_store_contract_sid.i"
 #include "../shaders/dapps_store_contract.cpp"

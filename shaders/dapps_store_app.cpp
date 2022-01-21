@@ -23,7 +23,7 @@ namespace manager
 {
     void Create()
     {
-        DAppsStore::Create args;
+        DAppsStore::Method::Create args;
 
         Env::GenerateKernel(nullptr, args.s_iMethod, &args, sizeof(args), nullptr, 0, nullptr, 0, "create DApps Store contract", 0);
     }
@@ -48,7 +48,7 @@ namespace manager
         ContractID cid;
         Env::DocGet(CONTRACT_ID, cid);
 
-        DAppsStore::AddPublisher args;
+        DAppsStore::Method::AddPublisher args;
         Env::DerivePk(args.m_Publisher, &cid, sizeof(cid));
         args.m_LabelSize = Env::DocGetText(LABEL, args.m_Label, DAppsStore::Publisher::LABEL_MAX_SIZE);
 
@@ -87,7 +87,7 @@ namespace manager
         ContractID cid;
         Env::DocGet(CONTRACT_ID, cid);
 
-        DAppsStore::AddDApp args;
+        DAppsStore::Method::AddDApp args;
         Env::DerivePk(args.m_Publisher, &cid, sizeof(cid));
         Env::DocGetBlobEx(IPFS_ID, &args.m_IPFSId, sizeof(args.m_IPFSId));
         args.m_LabelSize = Env::DocGetText(LABEL, args.m_Label, DAppsStore::DApp::LABEL_MAX_SIZE);
