@@ -77,6 +77,7 @@ namespace manager
         {
             Env::DocGroup gr("");
             Env::DocAddBlob_T(PUBLISHER, k0.m_KeyInContract.m_PubKey);
+            Env::DocAddText(LABEL, publisher.m_Label);
         }
     }
 
@@ -116,6 +117,7 @@ namespace manager
         {
             Env::DocGroup gr("");
             Env::DocAddNum("id", Utils::FromBE(k0.m_KeyInContract.m_IdInBE));
+            Env::DocAddText(LABEL, dapp.m_Label);
             Env::DocAddBlob_T(PUBLISHER, dapp.m_Publisher);
             Env::DocAddBlob_T(IPFS_ID, dapp.m_IPFSId);
         }

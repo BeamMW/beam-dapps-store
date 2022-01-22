@@ -24,7 +24,7 @@ namespace DAppsStore
 
         static const uint32_t LABEL_MAX_SIZE = 100;
 
-        char m_Label[LABEL_MAX_SIZE];
+        char m_Label[LABEL_MAX_SIZE + 1];
     };
 
     struct DApp
@@ -41,7 +41,7 @@ namespace DAppsStore
         PubKey m_Publisher;
         IPFSCID m_IPFSId;
 
-        char m_Label[LABEL_MAX_SIZE];
+        char m_Label[LABEL_MAX_SIZE + 1];
     };
 
     namespace Method
@@ -57,7 +57,7 @@ namespace DAppsStore
 
             PubKey m_Publisher;
             uint32_t m_LabelSize;
-            char m_Label[Publisher::LABEL_MAX_SIZE];
+            char m_Label[Publisher::LABEL_MAX_SIZE + 1];
         };
 
         struct UpdatePublisher
@@ -81,7 +81,7 @@ namespace DAppsStore
             PubKey m_Publisher;
             IPFSCID m_IPFSId;
             uint32_t m_LabelSize;
-            char m_Label[DApp::LABEL_MAX_SIZE];
+            char m_Label[DApp::LABEL_MAX_SIZE + 1];
         };
 
         struct UpdateDApp

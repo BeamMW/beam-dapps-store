@@ -21,7 +21,7 @@ namespace DAppsStore
 
         Publisher publisher;
 
-        Env::Memset(publisher.m_Label, 0, Publisher::LABEL_MAX_SIZE);
+        Env::Memset(publisher.m_Label, 0, Publisher::LABEL_MAX_SIZE + 1);
         Env::Memcpy(publisher.m_Label, args.m_Label, args.m_LabelSize);
 
         Env::SaveVar_T(key, publisher);
@@ -42,7 +42,7 @@ namespace DAppsStore
         DApp dapp;
         _POD_(dapp.m_IPFSId) = args.m_IPFSId;
         _POD_(dapp.m_Publisher) = args.m_Publisher;
-        Env::Memset(dapp.m_Label, 0, DApp::LABEL_MAX_SIZE);
+        Env::Memset(dapp.m_Label, 0, DApp::LABEL_MAX_SIZE + 1);
         Env::Memcpy(dapp.m_Label, args.m_Label, args.m_LabelSize);
 
         uint64_t id = 0;
