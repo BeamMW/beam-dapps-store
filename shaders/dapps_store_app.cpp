@@ -144,7 +144,7 @@ BEAM_EXPORT void Method_0()
         Env::DocAddText(LABEL, "string");
     }
     {
-        Env::DocGroup grMethod("view_publisher");
+        Env::DocGroup grMethod("view_publishers");
         Env::DocAddText(CONTRACT_ID, "ContractID");
     }
     {

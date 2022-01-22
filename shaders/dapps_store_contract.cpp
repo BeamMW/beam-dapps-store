@@ -39,6 +39,12 @@ namespace DAppsStore
 
         Env::AddSig(args.m_Publisher);
 
+        // check publisher
+        Publisher::Key publisherKey;
+        _POD_(publisherKey.m_PubKey) = args.m_Publisher;
+        Publisher publisher;
+        Env::Halt_if(!Env::LoadVar_T(publisherKey, publisher));
+
         DApp dapp;
         _POD_(dapp.m_IPFSId) = args.m_IPFSId;
         _POD_(dapp.m_Publisher) = args.m_Publisher;
