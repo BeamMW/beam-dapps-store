@@ -48,12 +48,12 @@ namespace DAppsStore
     {
         struct Create
         {
-            static const uint32_t s_iMethod = 0;
+            static const uint32_t METHOD_ID = 0;
         };
 
         struct AddPublisher
         {
-            static const uint32_t s_iMethod = 2;
+            static const uint32_t METHOD_ID = 2;
 
             PubKey m_Publisher;
             uint32_t m_LabelSize;
@@ -62,21 +62,21 @@ namespace DAppsStore
 
         struct UpdatePublisher
         {
-            static const uint32_t s_iMethod = 3;
+            static const uint32_t METHOD_ID = 3;
 
             PubKey m_Publisher;
         };
 
         struct DeletePublisher
         {
-            static const uint32_t s_iMethod = 4;
+            static const uint32_t METHOD_ID = 4;
 
             PubKey m_Publisher;
         };
 
         struct AddDApp
         {
-            static const uint32_t s_iMethod = 5;
+            static const uint32_t METHOD_ID = 5;
 
             PubKey m_Publisher;
             IPFSCID m_IPFSId;
@@ -86,12 +86,12 @@ namespace DAppsStore
 
         struct UpdateDApp
         {
-            static const uint32_t s_iMethod = 6;
+            static const uint32_t METHOD_ID = 6;
         };
 
         struct DeleteDApp
         {
-            static const uint32_t s_iMethod = 7;
+            static const uint32_t METHOD_ID = 7;
         };
     } // namespace Method
 #pragma pack (pop)

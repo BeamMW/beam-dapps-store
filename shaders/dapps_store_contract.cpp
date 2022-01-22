@@ -2,7 +2,7 @@
 
 namespace DAppsStore
 {
-    BEAM_EXPORT void Ctor(const Method::Create& args)
+    BEAM_EXPORT void Ctor(const Method::Create& /*args*/)
     {
     }
 

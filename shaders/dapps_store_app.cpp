@@ -25,7 +25,7 @@ namespace manager
     {
         DAppsStore::Method::Create args;
 
-        Env::GenerateKernel(nullptr, args.s_iMethod, &args, sizeof(args), nullptr, 0, nullptr, 0, "create DApps Store contract", 0);
+        Env::GenerateKernel(nullptr, args.METHOD_ID, &args, sizeof(args), nullptr, 0, nullptr, 0, "create DApps Store contract", 0);
     }
 
     void View()
@@ -58,7 +58,7 @@ namespace manager
         sig.m_pID = &cid;
         sig.m_nID = sizeof(cid);
 
-        Env::GenerateKernel(&cid, args.s_iMethod, &args, sizeof(args), nullptr, 0, &sig, 1, "add publisher to store", 0);
+        Env::GenerateKernel(&cid, args.METHOD_ID, &args, sizeof(args), nullptr, 0, &sig, 1, "add publisher to store", 0);
     }
 
     void ViewPublishers()
@@ -98,7 +98,7 @@ namespace manager
         sig.m_pID = &cid;
         sig.m_nID = sizeof(cid);
 
-        Env::GenerateKernel(&cid, args.s_iMethod, &args, sizeof(args), nullptr, 0, &sig, 1, "add dapp to store", 0);
+        Env::GenerateKernel(&cid, args.METHOD_ID, &args, sizeof(args), nullptr, 0, &sig, 1, "add dapp to store", 0);
     }
 
     void ViewDApps()
