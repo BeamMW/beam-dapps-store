@@ -12,7 +12,7 @@ namespace DAppsStore
 
     BEAM_EXPORT void Method_2(const Method::AddPublisher& args)
     {
-        Env::Halt_if(args.m_LabelSize >= Publisher::LABEL_MAX_SIZE);
+        Env::Halt_if(args.m_LabelSize > Publisher::LABEL_MAX_SIZE);
 
         Env::AddSig(args.m_Publisher);
 
@@ -35,7 +35,7 @@ namespace DAppsStore
 
     BEAM_EXPORT void Method_5(const Method::AddDApp& args)
     {
-        Env::Halt_if(args.m_LabelSize >= DApp::LABEL_MAX_SIZE);
+        Env::Halt_if(args.m_LabelSize > DApp::LABEL_MAX_SIZE);
 
         Env::AddSig(args.m_Publisher);
 

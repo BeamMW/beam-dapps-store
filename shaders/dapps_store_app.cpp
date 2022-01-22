@@ -21,6 +21,8 @@ namespace
 
 namespace manager
 {
+    ContractID cid;
+
     void Create()
     {
         DAppsStore::Method::Create args;
@@ -35,9 +37,6 @@ namespace manager
 
     void GetPk()
     {
-        ContractID cid;
-        Env::DocGet(CONTRACT_ID, cid);
-
         PubKey pk;
         Env::DerivePk(pk, &cid, sizeof(cid));
         Env::DocAddBlob_T("pk", pk);
@@ -45,14 +44,16 @@ namespace manager
 
     void AddPublisher()
     {
-        ContractID cid;
-        Env::DocGet(CONTRACT_ID, cid);
-
         DAppsStore::Method::AddPublisher args;
         Env::DerivePk(args.m_Publisher, &cid, sizeof(cid));
         args.m_LabelSize = Env::DocGetText(LABEL, args.m_Label, DAppsStore::Publisher::LABEL_MAX_SIZE);
 
-        // TODO check size of label
+        // check size of label
+        if (args.m_LabelSize > DAppsStore::Publisher::LABEL_MAX_SIZE)
+        {
+            OnError("too large label!!!");
+            return;
+        }
 
         SigRequest sig;
         sig.m_pID = &cid;
@@ -63,9 +64,6 @@ namespace manager
 
     void ViewPublishers()
     {
-        ContractID cid;
-        Env::DocGet(CONTRACT_ID, cid);
-
         Env::Key_T<DAppsStore::Publisher::Key> k0, k1;
         _POD_(k0.m_Prefix.m_Cid) = cid;
         _POD_(k0.m_KeyInContract.m_PubKey).SetZero();
@@ -84,15 +82,17 @@ namespace manager
 
     void AddDApp()
     {
-        ContractID cid;
-        Env::DocGet(CONTRACT_ID, cid);
-
         DAppsStore::Method::AddDApp args;
         Env::DerivePk(args.m_Publisher, &cid, sizeof(cid));
         Env::DocGetBlobEx(IPFS_ID, &args.m_IPFSId, sizeof(args.m_IPFSId));
         args.m_LabelSize = Env::DocGetText(LABEL, args.m_Label, DAppsStore::DApp::LABEL_MAX_SIZE);
 
-        // TODO check size of label
+        // check size of label
+        if (args.m_LabelSize > DAppsStore::DApp::LABEL_MAX_SIZE)
+        {
+            OnError("too large label!!!");
+            return;
+        }
 
         SigRequest sig;
         sig.m_pID = &cid;
@@ -103,9 +103,6 @@ namespace manager
 
     void ViewDApps()
     {
-        ContractID cid;
-        Env::DocGet(CONTRACT_ID, cid);
-
         Env::Key_T<DAppsStore::DApp::Key> k0, k1;
         _POD_(k0.m_Prefix.m_Cid) = cid;
         k0.m_KeyInContract.m_IdInBE = 0;
@@ -180,28 +177,33 @@ BEAM_EXPORT void Method_1()
     {
         manager::View();
     }
-    else if (!Env::Strcmp(szAction, "get_pk"))
-    {
-        manager::GetPk();
-    }
-    else if (!Env::Strcmp(szAction, "add_publisher"))
-    {
-        manager::AddPublisher();
-    }
-    else if (!Env::Strcmp(szAction, "view_publishers"))
-    {
-        manager::ViewPublishers();
-    }
-    else if (!Env::Strcmp(szAction, "add_dapp"))
-    {
-        manager::AddDApp();
-    }
-    else if (!Env::Strcmp(szAction, "view_dapps"))
-    {
-        manager::ViewDApps();
-    }
     else
     {
-        OnError("invalid Action.");
+        Env::DocGet(CONTRACT_ID, manager::cid);
+
+        if (!Env::Strcmp(szAction, "get_pk"))
+        {
+            manager::GetPk();
+        }
+        else if (!Env::Strcmp(szAction, "add_publisher"))
+        {
+            manager::AddPublisher();
+        }
+        else if (!Env::Strcmp(szAction, "view_publishers"))
+        {
+            manager::ViewPublishers();
+        }
+        else if (!Env::Strcmp(szAction, "add_dapp"))
+        {
+            manager::AddDApp();
+        }
+        else if (!Env::Strcmp(szAction, "view_dapps"))
+        {
+            manager::ViewDApps();
+        }
+        else
+        {
+            OnError("invalid Action.");
+        }
     }
 }
