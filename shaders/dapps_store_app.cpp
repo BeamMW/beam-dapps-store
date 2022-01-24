@@ -121,7 +121,7 @@ namespace manager
     {
         DAppsStore::Method::AddDApp args;
         Env::DerivePk(args.m_Publisher, &cid, sizeof(cid));
-        Env::DocGetBlobEx(IPFS_ID, &args.m_IPFSId, sizeof(args.m_IPFSId));
+        Env::DocGetText(IPFS_ID, args.m_IPFSId, sizeof(args.m_IPFSId));
         args.m_LabelSize = Env::DocGetText(LABEL, args.m_Label, DAppsStore::DApp::LABEL_MAX_SIZE);
 
         // check size of label
@@ -144,7 +144,7 @@ namespace manager
         DAppsStore::Method::UpdateDApp args;
 
         Env::DocGetNum64(DAPP_ID, &args.m_Id);
-        Env::DocGetBlobEx(IPFS_ID, &args.m_IPFSId, sizeof(args.m_IPFSId));
+        Env::DocGetText(IPFS_ID, args.m_IPFSId, sizeof(args.m_IPFSId));
         args.m_LabelSize = Env::DocGetText(LABEL, args.m_Label, DAppsStore::DApp::LABEL_MAX_SIZE);
 
         // check size of label
@@ -192,7 +192,7 @@ namespace manager
             Env::DocAddNum(DAPP_ID, Utils::FromBE(k0.m_KeyInContract.m_IdInBE));
             Env::DocAddText(LABEL, dapp.m_Label);
             Env::DocAddBlob_T(PUBLISHER, dapp.m_Publisher);
-            Env::DocAddBlob_T(IPFS_ID, dapp.m_IPFSId);
+            Env::DocAddText(IPFS_ID, dapp.m_IPFSId);
         }
     }
 } // namespace manager

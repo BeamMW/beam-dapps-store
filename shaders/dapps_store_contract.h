@@ -3,7 +3,7 @@
 
 namespace DAppsStore
 {
-    typedef Opaque<34> IPFSCID;
+    using IPFSCID = char[46];
     typedef uint8_t TagType;
 
     namespace Tags

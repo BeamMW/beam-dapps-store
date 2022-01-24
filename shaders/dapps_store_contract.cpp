@@ -60,7 +60,7 @@ namespace DAppsStore
         Env::Halt_if(!Env::LoadVar_T(publisherKey, publisher));
 
         DApp dapp;
-        _POD_(dapp.m_IPFSId) = args.m_IPFSId;
+        Env::Memcpy(dapp.m_IPFSId, args.m_IPFSId, sizeof(dapp.m_IPFSId));
         _POD_(dapp.m_Publisher) = args.m_Publisher;
         Env::Memset(dapp.m_Label, 0, DApp::LABEL_MAX_SIZE + 1);
         Env::Memcpy(dapp.m_Label, args.m_Label, args.m_LabelSize);
@@ -87,7 +87,7 @@ namespace DAppsStore
 
         Env::AddSig(dapp.m_Publisher);
 
-        _POD_(dapp.m_IPFSId) = args.m_IPFSId;
+        Env::Memcpy(dapp.m_IPFSId, args.m_IPFSId, sizeof(dapp.m_IPFSId));
         Env::Memset(dapp.m_Label, 0, DApp::LABEL_MAX_SIZE + 1);
         Env::Memcpy(dapp.m_Label, args.m_Label, args.m_LabelSize);
 
