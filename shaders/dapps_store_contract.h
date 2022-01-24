@@ -65,6 +65,8 @@ namespace DAppsStore
             static const uint32_t METHOD_ID = 3;
 
             PubKey m_Publisher;
+            uint32_t m_LabelSize;
+            char m_Label[Publisher::LABEL_MAX_SIZE + 1];
         };
 
         struct DeletePublisher
@@ -87,11 +89,18 @@ namespace DAppsStore
         struct UpdateDApp
         {
             static const uint32_t METHOD_ID = 6;
+
+            uint64_t m_Id;
+            IPFSCID m_IPFSId;
+            uint32_t m_LabelSize;
+            char m_Label[DApp::LABEL_MAX_SIZE + 1];
         };
 
         struct DeleteDApp
         {
             static const uint32_t METHOD_ID = 7;
+
+            uint64_t m_Id;
         };
     } // namespace Method
 #pragma pack (pop)
