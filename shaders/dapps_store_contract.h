@@ -5,6 +5,7 @@ namespace DAppsStore
 {
     using IPFSCID = char[46];
     typedef uint8_t TagType;
+    typedef Opaque<16> DAppId;
 
     namespace Tags
     {
@@ -22,9 +23,9 @@ namespace DAppsStore
             PubKey m_PubKey;
         };
 
-        static const uint32_t LABEL_MAX_SIZE = 100;
+        static const uint32_t NAME_MAX_SIZE = 30;
 
-        char m_Label[LABEL_MAX_SIZE + 1];
+        char m_Name[NAME_MAX_SIZE];
     };
 
     struct DApp
@@ -32,16 +33,20 @@ namespace DAppsStore
         struct Key
         {
             TagType m_Type = Tags::DAPP;
-            // big-endian, for simpler enumeration by app shader
-            uint64_t m_IdInBE;
+            DAppId m_Id;
         };
 
-        static const uint32_t LABEL_MAX_SIZE = 100;
+        static const uint32_t NAME_MAX_SIZE = 30;
+        static const uint32_t DESCRIPTION_MAX_SIZE = 1024;
+        static const uint32_t API_VERSION_MAX_SIZE = 10;
 
         PubKey m_Publisher;
         IPFSCID m_IPFSId;
 
-        char m_Label[LABEL_MAX_SIZE + 1];
+        char m_Name[NAME_MAX_SIZE];
+        char m_Description[DESCRIPTION_MAX_SIZE];
+        char m_ApiVersion[API_VERSION_MAX_SIZE];
+        char m_MinApiVersion[API_VERSION_MAX_SIZE];
     };
 
     namespace Method
@@ -56,8 +61,7 @@ namespace DAppsStore
             static const uint32_t METHOD_ID = 2;
 
             PubKey m_Publisher;
-            uint32_t m_LabelSize;
-            char m_Label[Publisher::LABEL_MAX_SIZE + 1];
+            char m_Name[Publisher::NAME_MAX_SIZE];
         };
 
         struct UpdatePublisher
@@ -65,8 +69,7 @@ namespace DAppsStore
             static const uint32_t METHOD_ID = 3;
 
             PubKey m_Publisher;
-            uint32_t m_LabelSize;
-            char m_Label[Publisher::LABEL_MAX_SIZE + 1];
+            char m_Name[Publisher::NAME_MAX_SIZE];
         };
 
         struct DeletePublisher
@@ -80,27 +83,32 @@ namespace DAppsStore
         {
             static const uint32_t METHOD_ID = 5;
 
+            DAppId m_Id;
             PubKey m_Publisher;
             IPFSCID m_IPFSId;
-            uint32_t m_LabelSize;
-            char m_Label[DApp::LABEL_MAX_SIZE + 1];
+            char m_Name[DApp::NAME_MAX_SIZE];
+            char m_Description[DApp::DESCRIPTION_MAX_SIZE];
+            char m_ApiVersion[DApp::API_VERSION_MAX_SIZE];
+            char m_MinApiVersion[DApp::API_VERSION_MAX_SIZE];
         };
 
         struct UpdateDApp
         {
             static const uint32_t METHOD_ID = 6;
 
-            uint64_t m_Id;
+            DAppId m_Id;
             IPFSCID m_IPFSId;
-            uint32_t m_LabelSize;
-            char m_Label[DApp::LABEL_MAX_SIZE + 1];
+            char m_Name[DApp::NAME_MAX_SIZE];
+            char m_Description[DApp::DESCRIPTION_MAX_SIZE];
+            char m_ApiVersion[DApp::API_VERSION_MAX_SIZE];
+            char m_MinApiVersion[DApp::API_VERSION_MAX_SIZE];
         };
 
         struct DeleteDApp
         {
             static const uint32_t METHOD_ID = 7;
 
-            uint64_t m_Id;
+            DAppId m_Id;
         };
     } // namespace Method
 #pragma pack (pop)

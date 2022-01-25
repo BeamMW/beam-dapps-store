@@ -11,7 +11,10 @@ namespace
     const char* CONTRACT_ID = "cid";
     const char* PUBLISHER = "publisher";
     const char* IPFS_ID = "ipfs_id";
-    const char* LABEL = "label";
+    const char* NAME = "name";
+    const char* DESCRIPTION = "description";
+    const char* API_VERSION = "api_ver";
+    const char* MIN_API_VERSION = "min_api_ver";
     const char* DAPP_ID = "id";
 
     namespace Actions
@@ -61,14 +64,7 @@ namespace manager
     {
         DAppsStore::Method::AddPublisher args;
         Env::DerivePk(args.m_Publisher, &cid, sizeof(cid));
-        args.m_LabelSize = Env::DocGetText(LABEL, args.m_Label, DAppsStore::Publisher::LABEL_MAX_SIZE);
-
-        // check size of label
-        if (args.m_LabelSize > DAppsStore::Publisher::LABEL_MAX_SIZE)
-        {
-            OnError("too large label!!!");
-            return;
-        }
+        Env::DocGetText(NAME, args.m_Name, DAppsStore::Publisher::NAME_MAX_SIZE);
 
         SigRequest sig;
         sig.m_pID = &cid;
@@ -82,14 +78,7 @@ namespace manager
         // TODO check to exist
         DAppsStore::Method::UpdatePublisher args;
         Env::DerivePk(args.m_Publisher, &cid, sizeof(cid));
-        args.m_LabelSize = Env::DocGetText(LABEL, args.m_Label, DAppsStore::Publisher::LABEL_MAX_SIZE);
-
-        // check size of label
-        if (args.m_LabelSize > DAppsStore::Publisher::LABEL_MAX_SIZE)
-        {
-            OnError("too large label!!!");
-            return;
-        }
+        Env::DocGetText(NAME, args.m_Name, DAppsStore::Publisher::NAME_MAX_SIZE);
 
         SigRequest sig;
         sig.m_pID = &cid;
@@ -113,29 +102,26 @@ namespace manager
         {
             Env::DocGroup gr("");
             Env::DocAddBlob_T(PUBLISHER, k0.m_KeyInContract.m_PubKey);
-            Env::DocAddText(LABEL, publisher.m_Label);
+            Env::DocAddText(NAME, publisher.m_Name);
         }
     }
 
     void AddDApp()
     {
         DAppsStore::Method::AddDApp args;
+        Env::DocGetBlobEx(DAPP_ID, &args.m_Id, sizeof(args.m_Id));
         Env::DerivePk(args.m_Publisher, &cid, sizeof(cid));
         Env::DocGetText(IPFS_ID, args.m_IPFSId, sizeof(args.m_IPFSId));
-        args.m_LabelSize = Env::DocGetText(LABEL, args.m_Label, DAppsStore::DApp::LABEL_MAX_SIZE);
-
-        // check size of label
-        if (args.m_LabelSize > DAppsStore::DApp::LABEL_MAX_SIZE)
-        {
-            OnError("too large label!!!");
-            return;
-        }
+        Env::DocGetText(NAME, args.m_Name, DAppsStore::DApp::NAME_MAX_SIZE);
+        Env::DocGetText(DESCRIPTION, args.m_Description, DAppsStore::DApp::DESCRIPTION_MAX_SIZE);
+        Env::DocGetText(API_VERSION, args.m_ApiVersion, DAppsStore::DApp::API_VERSION_MAX_SIZE);
+        Env::DocGetText(MIN_API_VERSION, args.m_MinApiVersion, DAppsStore::DApp::API_VERSION_MAX_SIZE);
 
         SigRequest sig;
         sig.m_pID = &cid;
         sig.m_nID = sizeof(cid);
 
-        Env::GenerateKernel(&cid, args.METHOD_ID, &args, sizeof(args), nullptr, 0, &sig, 1, "add dapp to store", 0);
+        Env::GenerateKernel(&cid, args.METHOD_ID, &args, sizeof(args), nullptr, 0, &sig, 1, "add dapp to store", 170000);
     }
 
     void UpdateDApp()
@@ -143,16 +129,12 @@ namespace manager
         // TODO check to exist
         DAppsStore::Method::UpdateDApp args;
 
-        Env::DocGetNum64(DAPP_ID, &args.m_Id);
+        Env::DocGetBlobEx(DAPP_ID, &args.m_Id, sizeof(args.m_Id));
         Env::DocGetText(IPFS_ID, args.m_IPFSId, sizeof(args.m_IPFSId));
-        args.m_LabelSize = Env::DocGetText(LABEL, args.m_Label, DAppsStore::DApp::LABEL_MAX_SIZE);
-
-        // check size of label
-        if (args.m_LabelSize > DAppsStore::DApp::LABEL_MAX_SIZE)
-        {
-            OnError("too large label!!!");
-            return;
-        }
+        Env::DocGetText(NAME, args.m_Name, DAppsStore::DApp::NAME_MAX_SIZE);
+        Env::DocGetText(DESCRIPTION, args.m_Description, DAppsStore::DApp::DESCRIPTION_MAX_SIZE);
+        Env::DocGetText(API_VERSION, args.m_ApiVersion, DAppsStore::DApp::API_VERSION_MAX_SIZE);
+        Env::DocGetText(MIN_API_VERSION, args.m_MinApiVersion, DAppsStore::DApp::API_VERSION_MAX_SIZE);
 
         SigRequest sig;
         sig.m_pID = &cid;
@@ -166,7 +148,7 @@ namespace manager
         // TODO check to exist
         DAppsStore::Method::DeleteDApp args;
 
-        Env::DocGetNum64(DAPP_ID, &args.m_Id);
+        Env::DocGetBlobEx(DAPP_ID, &args.m_Id, sizeof(args.m_Id));
 
         SigRequest sig;
         sig.m_pID = &cid;
@@ -179,9 +161,9 @@ namespace manager
     {
         Env::Key_T<DAppsStore::DApp::Key> k0, k1;
         _POD_(k0.m_Prefix.m_Cid) = cid;
-        k0.m_KeyInContract.m_IdInBE = 0;
+        _POD_(k0.m_KeyInContract.m_Id).SetZero();
         _POD_(k1.m_Prefix.m_Cid) = cid;
-        k1.m_KeyInContract.m_IdInBE = -1;
+        _POD_(k1.m_KeyInContract.m_Id).SetObject(0xff);
 
         Env::VarReader reader(k0, k1);
         DAppsStore::DApp dapp;
@@ -189,8 +171,11 @@ namespace manager
         while (reader.MoveNext_T(k0, dapp))
         {
             Env::DocGroup gr("");
-            Env::DocAddNum(DAPP_ID, Utils::FromBE(k0.m_KeyInContract.m_IdInBE));
-            Env::DocAddText(LABEL, dapp.m_Label);
+            Env::DocAddBlob_T(DAPP_ID, k0.m_KeyInContract.m_Id);
+            Env::DocAddText(NAME, dapp.m_Name);
+            Env::DocAddText(DESCRIPTION, dapp.m_Description);
+            Env::DocAddText(API_VERSION, dapp.m_ApiVersion);
+            Env::DocAddText(MIN_API_VERSION, dapp.m_MinApiVersion);
             Env::DocAddBlob_T(PUBLISHER, dapp.m_Publisher);
             Env::DocAddText(IPFS_ID, dapp.m_IPFSId);
         }
@@ -214,12 +199,12 @@ BEAM_EXPORT void Method_0()
     {
         Env::DocGroup grMethod(Actions::ADD_PUBLISHER);
         Env::DocAddText(CONTRACT_ID, "ContractID");
-        Env::DocAddText(LABEL, "string");
+        Env::DocAddText(NAME, "string");
     }
     {
         Env::DocGroup grMethod(Actions::UPDATE_PUBLISHER);
         Env::DocAddText(CONTRACT_ID, "ContractID");
-        Env::DocAddText(LABEL, "string");
+        Env::DocAddText(NAME, "string");
     }
     {
         Env::DocGroup grMethod(Actions::VIEW_PUBLISHERS);
@@ -228,20 +213,27 @@ BEAM_EXPORT void Method_0()
     {
         Env::DocGroup grMethod(Actions::ADD_DAPP);
         Env::DocAddText(CONTRACT_ID, "ContractID");
+        Env::DocAddText(DAPP_ID, "DAppId");
         Env::DocAddText(IPFS_ID, "IPFSCID");
-        Env::DocAddText(LABEL, "string");
+        Env::DocAddText(NAME, "string");
+        Env::DocAddText(DESCRIPTION, "string");
+        Env::DocAddText(API_VERSION, "string");
+        Env::DocAddText(MIN_API_VERSION, "string");
     }
     {
         Env::DocGroup grMethod(Actions::UPDATE_DAPP);
         Env::DocAddText(CONTRACT_ID, "ContractID");
-        Env::DocAddText(DAPP_ID, "uint64_t");
+        Env::DocAddText(DAPP_ID, "DAppId");
         Env::DocAddText(IPFS_ID, "IPFSCID");
-        Env::DocAddText(LABEL, "string");
+        Env::DocAddText(NAME, "string");
+        Env::DocAddText(DESCRIPTION, "string");
+        Env::DocAddText(API_VERSION, "string");
+        Env::DocAddText(MIN_API_VERSION, "string");
     }
     {
         Env::DocGroup grMethod(Actions::DELETE_DAPP);
         Env::DocAddText(CONTRACT_ID, "ContractID");
-        Env::DocAddText(DAPP_ID, "uint64_t");
+        Env::DocAddText(DAPP_ID, "DAppId");
     }
     {
         Env::DocGroup grMethod(Actions::VIEW_DAPPS);
