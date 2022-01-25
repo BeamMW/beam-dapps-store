@@ -10,6 +10,7 @@ namespace
 {
     const char* CONTRACT_ID = "cid";
     const char* PUBLISHER = "publisher";
+    const char* PUBKEY = "pubkey";
     const char* IPFS_ID = "ipfs_id";
     const char* NAME = "name";
     const char* DESCRIPTION = "description";
@@ -98,10 +99,11 @@ namespace manager
         Env::VarReader reader(k0, k1);
         DAppsStore::Publisher publisher;
 
+        Env::DocArray arr("publishers");
         while (reader.MoveNext_T(k0, publisher))
         {
             Env::DocGroup gr("");
-            Env::DocAddBlob_T(PUBLISHER, k0.m_KeyInContract.m_PubKey);
+            Env::DocAddBlob_T(PUBKEY, k0.m_KeyInContract.m_PubKey);
             Env::DocAddText(NAME, publisher.m_Name);
         }
     }
@@ -168,6 +170,7 @@ namespace manager
         Env::VarReader reader(k0, k1);
         DAppsStore::DApp dapp;
 
+        Env::DocArray arr("dapps");
         while (reader.MoveNext_T(k0, dapp))
         {
             Env::DocGroup gr("");
