@@ -38,6 +38,7 @@ namespace DAppsStore
 
         static const uint32_t NAME_MAX_SIZE = 30;
         static const uint32_t DESCRIPTION_MAX_SIZE = 1024;
+        static const uint32_t VERSION_MAX_SIZE = 10;
         static const uint32_t API_VERSION_MAX_SIZE = 10;
 
         PubKey m_Publisher;
@@ -45,6 +46,7 @@ namespace DAppsStore
 
         char m_Name[NAME_MAX_SIZE];
         char m_Description[DESCRIPTION_MAX_SIZE];
+        char m_Version[VERSION_MAX_SIZE];
         char m_ApiVersion[API_VERSION_MAX_SIZE];
         char m_MinApiVersion[API_VERSION_MAX_SIZE];
     };
@@ -88,6 +90,7 @@ namespace DAppsStore
             IPFSCID m_IPFSId;
             char m_Name[DApp::NAME_MAX_SIZE];
             char m_Description[DApp::DESCRIPTION_MAX_SIZE];
+            char m_Version[DApp::VERSION_MAX_SIZE];
             char m_ApiVersion[DApp::API_VERSION_MAX_SIZE];
             char m_MinApiVersion[DApp::API_VERSION_MAX_SIZE];
         };
@@ -100,6 +103,7 @@ namespace DAppsStore
             IPFSCID m_IPFSId;
             char m_Name[DApp::NAME_MAX_SIZE];
             char m_Description[DApp::DESCRIPTION_MAX_SIZE];
+            char m_Version[DApp::VERSION_MAX_SIZE];
             char m_ApiVersion[DApp::API_VERSION_MAX_SIZE];
             char m_MinApiVersion[DApp::API_VERSION_MAX_SIZE];
         };

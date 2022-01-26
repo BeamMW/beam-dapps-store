@@ -17,6 +17,7 @@ namespace
     const char* API_VERSION = "api_ver";
     const char* MIN_API_VERSION = "min_api_ver";
     const char* DAPP_ID = "id";
+    const char* VERSION = "version";
 
     namespace Actions
     {
@@ -115,6 +116,7 @@ namespace manager
         Env::DerivePk(args.m_Publisher, &cid, sizeof(cid));
         Env::DocGetText(IPFS_ID, args.m_IPFSId, sizeof(args.m_IPFSId));
         Env::DocGetText(NAME, args.m_Name, DAppsStore::DApp::NAME_MAX_SIZE);
+        Env::DocGetText(VERSION, args.m_Version, DAppsStore::DApp::VERSION_MAX_SIZE);
         Env::DocGetText(DESCRIPTION, args.m_Description, DAppsStore::DApp::DESCRIPTION_MAX_SIZE);
         Env::DocGetText(API_VERSION, args.m_ApiVersion, DAppsStore::DApp::API_VERSION_MAX_SIZE);
         Env::DocGetText(MIN_API_VERSION, args.m_MinApiVersion, DAppsStore::DApp::API_VERSION_MAX_SIZE);
@@ -134,6 +136,7 @@ namespace manager
         Env::DocGetBlobEx(DAPP_ID, &args.m_Id, sizeof(args.m_Id));
         Env::DocGetText(IPFS_ID, args.m_IPFSId, sizeof(args.m_IPFSId));
         Env::DocGetText(NAME, args.m_Name, DAppsStore::DApp::NAME_MAX_SIZE);
+        Env::DocGetText(VERSION, args.m_Version, DAppsStore::DApp::VERSION_MAX_SIZE);
         Env::DocGetText(DESCRIPTION, args.m_Description, DAppsStore::DApp::DESCRIPTION_MAX_SIZE);
         Env::DocGetText(API_VERSION, args.m_ApiVersion, DAppsStore::DApp::API_VERSION_MAX_SIZE);
         Env::DocGetText(MIN_API_VERSION, args.m_MinApiVersion, DAppsStore::DApp::API_VERSION_MAX_SIZE);
@@ -177,6 +180,7 @@ namespace manager
             Env::DocAddBlob_T(DAPP_ID, k0.m_KeyInContract.m_Id);
             Env::DocAddText(NAME, dapp.m_Name);
             Env::DocAddText(DESCRIPTION, dapp.m_Description);
+            Env::DocAddText(VERSION, dapp.m_Version);
             Env::DocAddText(API_VERSION, dapp.m_ApiVersion);
             Env::DocAddText(MIN_API_VERSION, dapp.m_MinApiVersion);
             Env::DocAddBlob_T(PUBLISHER, dapp.m_Publisher);
@@ -219,6 +223,7 @@ BEAM_EXPORT void Method_0()
         Env::DocAddText(DAPP_ID, "DAppId");
         Env::DocAddText(IPFS_ID, "IPFSCID");
         Env::DocAddText(NAME, "string");
+        Env::DocAddText(VERSION, "string");
         Env::DocAddText(DESCRIPTION, "string");
         Env::DocAddText(API_VERSION, "string");
         Env::DocAddText(MIN_API_VERSION, "string");
@@ -229,6 +234,7 @@ BEAM_EXPORT void Method_0()
         Env::DocAddText(DAPP_ID, "DAppId");
         Env::DocAddText(IPFS_ID, "IPFSCID");
         Env::DocAddText(NAME, "string");
+        Env::DocAddText(VERSION, "string");
         Env::DocAddText(DESCRIPTION, "string");
         Env::DocAddText(API_VERSION, "string");
         Env::DocAddText(MIN_API_VERSION, "string");
