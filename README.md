@@ -22,4 +22,4 @@ beam-wallet-masternet.exe -n 127.0.0.1:11001 shader --shader_app_file="dapps_sto
 
 # Get list of dapps:
 
-beam-wallet-masternet.exe -n 127.0.0.1:11001 shader --shader_app_file="dapps_store_app.wasm" --shader_args="action=view_dapps,cid=72232ccb1cb406e8858a5d80bc9e0471fa70e9c7a49014daffb42437db26e868"
+beam-wallet-masternet.exe -n 127.0.0.1:11001 shader --shader_app_file="dapps_store_app.wasm" --shader_args="action=view_dapps,cid=72232ccb1cb406e8858a5d80bc9e0471fa70e9c7a49014daffb42437db26e868,publisher=54f2a78a412d682716f27a0b305c0dece8ec8f7bca9e0629ed31ab056ef758f200"
