@@ -3,7 +3,8 @@
 
 namespace DAppsStore
 {
-    using IPFSCID = char[46];
+    // size of CID is 46 + 1 of '\0'
+    using IPFSCID = char[47];
     typedef uint8_t TagType;
     typedef Opaque<16> DAppId;
 
