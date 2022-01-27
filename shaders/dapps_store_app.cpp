@@ -164,6 +164,8 @@ namespace manager
 
     void ViewDApps()
     {
+        PubKey pk;
+        bool filter = Env::DocGet(PUBLISHER, pk);
         Env::Key_T<DAppsStore::DApp::Key> k0, k1;
         _POD_(k0.m_Prefix.m_Cid) = cid;
         _POD_(k0.m_KeyInContract.m_Id).SetZero();
@@ -176,6 +178,9 @@ namespace manager
         Env::DocArray arr("dapps");
         while (reader.MoveNext_T(k0, dapp))
         {
+            if (filter && _POD_(dapp.m_Publisher) != pk)
+                continue;
+
             Env::DocGroup gr("");
             Env::DocAddBlob_T(DAPP_ID, k0.m_KeyInContract.m_Id);
             Env::DocAddText(NAME, dapp.m_Name);
