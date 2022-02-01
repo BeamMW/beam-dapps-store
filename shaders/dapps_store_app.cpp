@@ -37,6 +37,82 @@ namespace
     {
         Env::DocAddText("error", sz);
     }
+
+    bool ReadDAppMetadata(DAppsStore::Method::Base& args)
+    {
+        if (!Env::DocGetBlobEx(DAPP_ID, &args.m_Id, sizeof(args.m_Id)))
+        {
+            OnError("id should be specified");
+            return false;
+        }
+
+        if (!Env::DocGetText(IPFS_ID, args.m_IPFSId, sizeof(args.m_IPFSId)))
+        {
+            OnError("ipfs id should be specified");
+            return false;
+        }
+
+        if (!Env::DocGetText(NAME, args.m_Name, DAppsStore::DApp::NAME_MAX_SIZE))
+        {
+            OnError("dapp name should be specified");
+            return false;
+        }
+
+        if (!Env::DocGetText(VERSION, args.m_Version, DAppsStore::DApp::VERSION_MAX_SIZE))
+        {
+            OnError("dapp version should be specified");
+            return false;
+        }
+
+        if (!Env::DocGetText(DESCRIPTION, args.m_Description, DAppsStore::DApp::DESCRIPTION_MAX_SIZE))
+        {
+            OnError("description should be specified");
+            return false;
+        }
+
+        if (!Env::DocGetText(API_VERSION, args.m_ApiVersion, DAppsStore::DApp::API_VERSION_MAX_SIZE))
+        {
+            OnError("api_ver should be specified");
+            return false;
+        }
+
+        if (!Env::DocGetText(MIN_API_VERSION, args.m_MinApiVersion, DAppsStore::DApp::API_VERSION_MAX_SIZE))
+        {
+            OnError("min_api_ver should be specified");
+            return false;
+        }
+
+        return true;
+    }
+
+    bool IsExistPublisher(const ContractID& cid, const PubKey& pubkey)
+    {
+        Env::Key_T<DAppsStore::Publisher::Key> k;
+        _POD_(k.m_Prefix.m_Cid) = cid;
+        _POD_(k.m_KeyInContract.m_PubKey) = pubkey;
+
+        DAppsStore::Publisher publisher;
+        if (Env::VarReader::Read_T(k, publisher))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    bool IsExistDApp(const ContractID& cid, const DAppsStore::DAppId& id)
+    {
+        Env::Key_T<DAppsStore::DApp::Key> k;
+        _POD_(k.m_Prefix.m_Cid) = cid;
+        _POD_(k.m_KeyInContract.m_Id) = id;
+        DAppsStore::DApp dapp;
+        if (Env::VarReader::Read_T(k, dapp))
+        {
+            return true;
+        }
+
+        return false;
+    }
 } // namespace
 
 namespace manager
@@ -59,14 +135,25 @@ namespace manager
     {
         PubKey pk;
         Env::DerivePk(pk, &cid, sizeof(cid));
-        Env::DocAddBlob_T("pk", pk);
+        Env::DocAddBlob_T(PUBKEY, pk);
     }
 
     void AddPublisher()
     {
         DAppsStore::Method::AddPublisher args;
         Env::DerivePk(args.m_Publisher, &cid, sizeof(cid));
-        Env::DocGetText(NAME, args.m_Name, DAppsStore::Publisher::NAME_MAX_SIZE);
+
+        if (IsExistPublisher(cid, args.m_Publisher))
+        {
+            OnError("publisher is exist");
+            return;
+        }
+
+        if (!Env::DocGetText(NAME, args.m_Name, DAppsStore::Publisher::NAME_MAX_SIZE))
+        {
+            OnError("name should be specified");
+            return;
+        }
 
         SigRequest sig;
         sig.m_pID = &cid;
@@ -77,10 +164,20 @@ namespace manager
 
     void UpdatePublisher()
     {
-        // TODO check to exist
         DAppsStore::Method::UpdatePublisher args;
         Env::DerivePk(args.m_Publisher, &cid, sizeof(cid));
-        Env::DocGetText(NAME, args.m_Name, DAppsStore::Publisher::NAME_MAX_SIZE);
+
+        if (!IsExistPublisher(cid, args.m_Publisher))
+        {
+            OnError("publisher is absent");
+            return;
+        }
+
+        if (!Env::DocGetText(NAME, args.m_Name, DAppsStore::Publisher::NAME_MAX_SIZE))
+        {
+            OnError("name should be specified");
+            return;
+        }
 
         SigRequest sig;
         sig.m_pID = &cid;
@@ -112,14 +209,25 @@ namespace manager
     void AddDApp()
     {
         DAppsStore::Method::AddDApp args;
-        Env::DocGetBlobEx(DAPP_ID, &args.m_Id, sizeof(args.m_Id));
+
+        if (!ReadDAppMetadata(args))
+        {
+            return;
+        }
+        
+        if (IsExistDApp(cid, args.m_Id))
+        {
+            OnError("dapp is exist");
+            return;
+        }
+
         Env::DerivePk(args.m_Publisher, &cid, sizeof(cid));
-        Env::DocGetText(IPFS_ID, args.m_IPFSId, sizeof(args.m_IPFSId));
-        Env::DocGetText(NAME, args.m_Name, DAppsStore::DApp::NAME_MAX_SIZE);
-        Env::DocGetText(VERSION, args.m_Version, DAppsStore::DApp::VERSION_MAX_SIZE);
-        Env::DocGetText(DESCRIPTION, args.m_Description, DAppsStore::DApp::DESCRIPTION_MAX_SIZE);
-        Env::DocGetText(API_VERSION, args.m_ApiVersion, DAppsStore::DApp::API_VERSION_MAX_SIZE);
-        Env::DocGetText(MIN_API_VERSION, args.m_MinApiVersion, DAppsStore::DApp::API_VERSION_MAX_SIZE);
+
+        if (!IsExistPublisher(cid, args.m_Publisher))
+        {
+            OnError("publisher is absent");
+            return;
+        }
 
         SigRequest sig;
         sig.m_pID = &cid;
@@ -130,16 +238,18 @@ namespace manager
 
     void UpdateDApp()
     {
-        // TODO check to exist
         DAppsStore::Method::UpdateDApp args;
 
-        Env::DocGetBlobEx(DAPP_ID, &args.m_Id, sizeof(args.m_Id));
-        Env::DocGetText(IPFS_ID, args.m_IPFSId, sizeof(args.m_IPFSId));
-        Env::DocGetText(NAME, args.m_Name, DAppsStore::DApp::NAME_MAX_SIZE);
-        Env::DocGetText(VERSION, args.m_Version, DAppsStore::DApp::VERSION_MAX_SIZE);
-        Env::DocGetText(DESCRIPTION, args.m_Description, DAppsStore::DApp::DESCRIPTION_MAX_SIZE);
-        Env::DocGetText(API_VERSION, args.m_ApiVersion, DAppsStore::DApp::API_VERSION_MAX_SIZE);
-        Env::DocGetText(MIN_API_VERSION, args.m_MinApiVersion, DAppsStore::DApp::API_VERSION_MAX_SIZE);
+        if (!ReadDAppMetadata(args))
+        {
+            return;
+        }
+
+        if (!IsExistDApp(cid, args.m_Id))
+        {
+            OnError("dapp is absent");
+            return;
+        }
 
         SigRequest sig;
         sig.m_pID = &cid;
@@ -150,10 +260,15 @@ namespace manager
 
     void DeleteDApp()
     {
-        // TODO check to exist
         DAppsStore::Method::DeleteDApp args;
 
         Env::DocGetBlobEx(DAPP_ID, &args.m_Id, sizeof(args.m_Id));
+
+        if (!IsExistDApp(cid, args.m_Id))
+        {
+            OnError("dapp is absent");
+            return;
+        }
 
         SigRequest sig;
         sig.m_pID = &cid;
