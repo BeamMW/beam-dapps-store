@@ -145,7 +145,7 @@ namespace manager
 
         if (IsExistPublisher(cid, args.m_Publisher))
         {
-            OnError("publisher is exist");
+            OnError("the publisher exists");
             return;
         }
 
@@ -169,7 +169,7 @@ namespace manager
 
         if (!IsExistPublisher(cid, args.m_Publisher))
         {
-            OnError("publisher is absent");
+            OnError("the publisher is missing");
             return;
         }
 
@@ -217,7 +217,7 @@ namespace manager
         
         if (IsExistDApp(cid, args.m_Id))
         {
-            OnError("dapp is exist");
+            OnError("the dapp exists");
             return;
         }
 
@@ -225,7 +225,7 @@ namespace manager
 
         if (!IsExistPublisher(cid, args.m_Publisher))
         {
-            OnError("publisher is absent");
+            OnError("the publisher is missing");
             return;
         }
 
@@ -247,7 +247,7 @@ namespace manager
 
         if (!IsExistDApp(cid, args.m_Id))
         {
-            OnError("dapp is absent");
+            OnError("the dapp is missing");
             return;
         }
 
@@ -266,7 +266,7 @@ namespace manager
 
         if (!IsExistDApp(cid, args.m_Id))
         {
-            OnError("dapp is absent");
+            OnError("the dapp is missing");
             return;
         }
 

@@ -12,13 +12,14 @@ namespace DAppsStore
 
     BEAM_EXPORT void Method_2(const Method::AddPublisher& args)
     {
-        // TODO check to exist
         Env::AddSig(args.m_Publisher);
 
         Publisher::Key key;
         _POD_(key.m_PubKey) = args.m_Publisher;
 
         Publisher publisher;
+        // if the publisher exists then abort
+        Env::Halt_if(Env::LoadVar_T(key, publisher));
         Env::Memcpy(publisher.m_Name, args.m_Name, Publisher::NAME_MAX_SIZE);
 
         Env::SaveVar_T(key, publisher);
@@ -32,6 +33,7 @@ namespace DAppsStore
         _POD_(key.m_PubKey) = args.m_Publisher;
 
         Publisher publisher;
+        // if the publisher is missing then abort
         Env::Halt_if(!Env::LoadVar_T(key, publisher));
         Env::Memcpy(publisher.m_Name, args.m_Name, Publisher::NAME_MAX_SIZE);
 
@@ -45,16 +47,17 @@ namespace DAppsStore
     {
         Env::AddSig(args.m_Publisher);
 
-        // check publisher
         Publisher::Key publisherKey;
         _POD_(publisherKey.m_PubKey) = args.m_Publisher;
         Publisher publisher;
+        // if the publisher is missing then abort
         Env::Halt_if(!Env::LoadVar_T(publisherKey, publisher));
 
         DApp::Key key;
-        key.m_Id = args.m_Id;
+        _POD_(key.m_Id) = args.m_Id;
 
         DApp dapp;
+        // if the dapp exists then abort
         Env::Halt_if(Env::LoadVar_T(key, dapp));
 
         _POD_(dapp.m_Publisher) = args.m_Publisher;
@@ -71,11 +74,11 @@ namespace DAppsStore
     BEAM_EXPORT void Method_6(const Method::UpdateDApp& args)
     {
         DApp::Key key;
-        key.m_Id = args.m_Id;
+        _POD_(key.m_Id) = args.m_Id;
 
         DApp dapp;
+        // if the dapp is missing then abort
         Env::Halt_if(!Env::LoadVar_T(key, dapp));
-
         Env::AddSig(dapp.m_Publisher);
 
         Env::Memcpy(dapp.m_IPFSId, args.m_IPFSId, sizeof(dapp.m_IPFSId));
@@ -91,12 +94,13 @@ namespace DAppsStore
     BEAM_EXPORT void Method_7(const Method::DeleteDApp& args)
     {
         DApp::Key key;
-        key.m_Id = args.m_Id;
+        _POD_(key.m_Id) = args.m_Id;
 
         DApp dapp;
+        // if the dapp is missing then abort
         Env::Halt_if(!Env::LoadVar_T(key, dapp));
-
         Env::AddSig(dapp.m_Publisher);
+
         Env::DelVar_T(key);
     }
 } // namespace DAppsStore
