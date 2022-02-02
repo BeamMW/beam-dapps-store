@@ -64,9 +64,9 @@ namespace DAppsStore
         Env::Memcpy(dapp.m_IPFSId, args.m_IPFSId, sizeof(dapp.m_IPFSId));
         Env::Memcpy(dapp.m_Name, args.m_Name, DApp::NAME_MAX_SIZE);
         Env::Memcpy(dapp.m_Description, args.m_Description, DApp::DESCRIPTION_MAX_SIZE);
-        Env::Memcpy(dapp.m_Version, args.m_Version, DApp::VERSION_MAX_SIZE);
         Env::Memcpy(dapp.m_ApiVersion, args.m_ApiVersion, DApp::API_VERSION_MAX_SIZE);
         Env::Memcpy(dapp.m_MinApiVersion, args.m_MinApiVersion, DApp::API_VERSION_MAX_SIZE);
+        _POD_(dapp.m_Version) = args.m_Version;
 
         Env::SaveVar_T(key, dapp);
     }
@@ -84,9 +84,9 @@ namespace DAppsStore
         Env::Memcpy(dapp.m_IPFSId, args.m_IPFSId, sizeof(dapp.m_IPFSId));
         Env::Memcpy(dapp.m_Name, args.m_Name, DApp::NAME_MAX_SIZE);
         Env::Memcpy(dapp.m_Description, args.m_Description, DApp::DESCRIPTION_MAX_SIZE);
-        Env::Memcpy(dapp.m_Version, args.m_Version, DApp::VERSION_MAX_SIZE);
         Env::Memcpy(dapp.m_ApiVersion, args.m_ApiVersion, DApp::API_VERSION_MAX_SIZE);
         Env::Memcpy(dapp.m_MinApiVersion, args.m_MinApiVersion, DApp::API_VERSION_MAX_SIZE);
+        _POD_(dapp.m_Version) = args.m_Version;
 
         Env::SaveVar_T(key, dapp);
     }

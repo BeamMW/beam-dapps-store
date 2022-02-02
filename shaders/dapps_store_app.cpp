@@ -18,6 +18,10 @@ namespace
     const char* MIN_API_VERSION = "min_api_ver";
     const char* DAPP_ID = "id";
     const char* VERSION = "version";
+    const char* MAJOR = "major";
+    const char* MINOR = "minor";
+    const char* RELEASE = "release";
+    const char* BUILD = "build";
 
     namespace Actions
     {
@@ -58,9 +62,27 @@ namespace
             return false;
         }
 
-        if (!Env::DocGetText(VERSION, args.m_Version, DAppsStore::DApp::VERSION_MAX_SIZE))
+        if (!Env::DocGetNum32(MAJOR, &args.m_Version.m_Major))
         {
-            OnError("dapp version should be specified");
+            OnError("major should be specified");
+            return false;
+        }
+
+        if (!Env::DocGetNum32(MINOR, &args.m_Version.m_Minor))
+        {
+            OnError("minor should be specified");
+            return false;
+        }
+
+        if (!Env::DocGetNum32(RELEASE, &args.m_Version.m_Release))
+        {
+            OnError("release should be specified");
+            return false;
+        }
+
+        if (!Env::DocGetNum32(BUILD, &args.m_Version.m_Build))
+        {
+            OnError("build should be specified");
             return false;
         }
 
@@ -300,11 +322,16 @@ namespace manager
             Env::DocAddBlob_T(DAPP_ID, k0.m_KeyInContract.m_Id);
             Env::DocAddText(NAME, dapp.m_Name);
             Env::DocAddText(DESCRIPTION, dapp.m_Description);
-            Env::DocAddText(VERSION, dapp.m_Version);
             Env::DocAddText(API_VERSION, dapp.m_ApiVersion);
             Env::DocAddText(MIN_API_VERSION, dapp.m_MinApiVersion);
             Env::DocAddBlob_T(PUBLISHER, dapp.m_Publisher);
             Env::DocAddText(IPFS_ID, dapp.m_IPFSId);
+
+            Env::DocGroup version(VERSION);
+            Env::DocAddNum32(MAJOR, dapp.m_Version.m_Major);
+            Env::DocAddNum32(MINOR, dapp.m_Version.m_Minor);
+            Env::DocAddNum32(RELEASE, dapp.m_Version.m_Release);
+            Env::DocAddNum32(BUILD, dapp.m_Version.m_Build);
         }
     }
 } // namespace manager
@@ -343,10 +370,14 @@ BEAM_EXPORT void Method_0()
         Env::DocAddText(DAPP_ID, "DAppId");
         Env::DocAddText(IPFS_ID, "IPFSCID");
         Env::DocAddText(NAME, "string");
-        Env::DocAddText(VERSION, "string");
         Env::DocAddText(DESCRIPTION, "string");
         Env::DocAddText(API_VERSION, "string");
         Env::DocAddText(MIN_API_VERSION, "string");
+        // version
+        Env::DocAddText(MAJOR, "uint32_t");
+        Env::DocAddText(MINOR, "uint32_t");
+        Env::DocAddText(RELEASE, "uint32_t");
+        Env::DocAddText(BUILD, "uint32_t");
     }
     {
         Env::DocGroup grMethod(Actions::UPDATE_DAPP);
@@ -354,10 +385,14 @@ BEAM_EXPORT void Method_0()
         Env::DocAddText(DAPP_ID, "DAppId");
         Env::DocAddText(IPFS_ID, "IPFSCID");
         Env::DocAddText(NAME, "string");
-        Env::DocAddText(VERSION, "string");
         Env::DocAddText(DESCRIPTION, "string");
         Env::DocAddText(API_VERSION, "string");
         Env::DocAddText(MIN_API_VERSION, "string");
+        // version
+        Env::DocAddText(MAJOR, "uint32_t");
+        Env::DocAddText(MINOR, "uint32_t");
+        Env::DocAddText(RELEASE, "uint32_t");
+        Env::DocAddText(BUILD, "uint32_t");
     }
     {
         Env::DocGroup grMethod(Actions::DELETE_DAPP);
