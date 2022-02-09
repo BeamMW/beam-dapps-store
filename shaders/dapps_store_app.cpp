@@ -423,8 +423,6 @@ namespace manager
             return;
         }
 
-        PubKey pk;
-        bool filter = Env::DocGet(PUBLISHER, pk);
         Env::Key_T<DAppsStore::DApp::Key> k0, k1;
         _POD_(k0.m_Prefix.m_Cid) = cid;
         _POD_(k0.m_KeyInContract.m_Id).SetZero();
@@ -437,7 +435,7 @@ namespace manager
         Env::DocArray arr("dapps");
         while (reader.MoveNext_T(k0, dapp))
         {
-            if (publishers.NeedFilter() && !publishers.HasPubKey(pk))
+            if (publishers.NeedFilter() && !publishers.HasPubKey(dapp.m_Publisher))
                 continue;
 
             Env::DocGroup gr("");
