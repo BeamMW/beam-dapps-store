@@ -10,6 +10,7 @@ namespace
 {
     const char* CONTRACT_ID = "cid";
     const char* PUBLISHER = "publisher";
+    const char* PUBLISHERS = "publishers";
     const char* PUBKEY = "pubkey";
     const char* IPFS_ID = "ipfs_id";
     const char* NAME = "name";
@@ -36,6 +37,35 @@ namespace
         const char* DELETE_DAPP = "delete_dapp";
         const char* VIEW_DAPPS = "view_dapps";
     } // namespace Actions
+
+    uint8_t Ch2Hex(uint8_t c)
+    {
+        if (c >= 'a' && c <= 'f')
+            return 0xa + (c - 'a');
+
+        if (c >= 'A' && c <= 'F')
+            return 0xa + (c - 'A');
+
+        return c - '0';
+    }
+
+    uint32_t Scan(uint8_t* pDst, const char* sz, uint32_t nTxtLen)
+    {
+        uint32_t ret = 0;
+        for (; ret < nTxtLen; ret++)
+        {
+            uint8_t x = Ch2Hex(sz[ret]);
+            if (x > 0xf)
+                break;
+
+            if (1 & ret)
+                *pDst++ |= x;
+            else
+                *pDst = (x << 4);
+        }
+
+        return ret;
+    }
 
     void OnError(const char* sz)
     {
@@ -135,6 +165,92 @@ namespace
 
         return false;
     }
+
+    struct Publishers
+    {
+        ~Publishers()
+        {
+            if (m_PubKeys)
+            {
+                Env::Heap_Free(m_PubKeys);
+            }
+        }
+
+        bool Init()
+        {
+            const uint32_t CHUNK_SIZE = 67;
+            uint32_t size = Env::DocGetText(PUBLISHERS, nullptr, 0);
+
+            if (size == 0)
+            {
+                return true;
+            }
+
+            if (size % CHUNK_SIZE != 0)
+            {
+                OnError("wrong size of buffer");
+                return false;
+            }
+
+            char* buffer = static_cast<char*>(Env::Heap_Alloc(size));
+
+            Env::DocGetText(PUBLISHERS, buffer, size);
+
+            m_Amount = size / CHUNK_SIZE;
+            m_PubKeys = static_cast<PubKey*>(Env::Heap_Alloc(m_Amount * sizeof(PubKey)));
+
+            for (uint32_t i = 0; i < m_Amount; i++)
+            {
+                const char separator = buffer[(i + 1) * CHUNK_SIZE - 1];
+
+                if (i == m_Amount - 1)
+                {
+                    if (separator != '\0')
+                    {
+                        OnError("last sympol wrong");
+                        return false;
+                    }
+                }
+                else
+                {
+                    if (separator != ';')
+                    {
+                        OnError("separator is wrong");
+                        return false;
+                    }
+                }
+
+                char tmp[CHUNK_SIZE - 1];
+
+                Env::Memcpy(tmp, &buffer[i * CHUNK_SIZE], CHUNK_SIZE - 1);
+
+                Scan((uint8_t*)&m_PubKeys[i], tmp, CHUNK_SIZE - 1);
+            }
+
+            Env::Heap_Free(buffer);
+            return true;
+        }
+
+        bool NeedFilter() const
+        {
+            return m_Amount > 0;
+        }
+
+        bool HasPubKey(const PubKey& pk)
+        {
+            for (uint32_t i = 0; i < m_Amount; i++)
+            {
+                if (_POD_(pk) == m_PubKeys[i])
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        PubKey* m_PubKeys = nullptr;
+        uint32_t m_Amount = 0;
+    };
 } // namespace
 
 namespace manager
@@ -301,6 +417,12 @@ namespace manager
 
     void ViewDApps()
     {
+        Publishers publishers;
+        if (!publishers.Init())
+        {
+            return;
+        }
+
         PubKey pk;
         bool filter = Env::DocGet(PUBLISHER, pk);
         Env::Key_T<DAppsStore::DApp::Key> k0, k1;
@@ -315,7 +437,7 @@ namespace manager
         Env::DocArray arr("dapps");
         while (reader.MoveNext_T(k0, dapp))
         {
-            if (filter && _POD_(dapp.m_Publisher) != pk)
+            if (publishers.NeedFilter() && !publishers.HasPubKey(pk))
                 continue;
 
             Env::DocGroup gr("");
@@ -402,6 +524,7 @@ BEAM_EXPORT void Method_0()
     {
         Env::DocGroup grMethod(Actions::VIEW_DAPPS);
         Env::DocAddText(CONTRACT_ID, "ContractID");
+        Env::DocAddText(PUBLISHERS, "string");
     }
 }
 
