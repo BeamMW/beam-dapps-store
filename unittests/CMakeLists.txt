@@ -5,6 +5,7 @@ target_include_directories(shader_test PUBLIC ${PROJECT_SOURCE_DIR}/shaders)
 
 add_shader(dapps_store_contract ${PROJECT_SOURCE_DIR}/shaders)
 add_shader(dapps_store_app ${PROJECT_SOURCE_DIR}/shaders)
+add_shader(dapps_store_admin_app ${PROJECT_SOURCE_DIR}/shaders)
 
 add_custom_target(make_dapps_store_header
     ALL
@@ -15,3 +16,4 @@ add_custom_target(make_dapps_store_header
 
 add_dependencies(shader_test make_dapps_store_header)
 add_dependencies(dapps_store_app_target make_dapps_store_header)
+add_dependencies(dapps_store_admin_app_target make_dapps_store_header)

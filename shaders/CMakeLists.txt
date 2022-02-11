@@ -10,3 +10,9 @@ add_executable(dapps_store_app dapps_store_app.cpp)
 
 add_dependencies(dapps_store_app dapps_store_contract_header)
 copy_shader(dapps_store_app)
+
+// admin app
+add_executable(dapps_store_admin_app dapps_store_admin_app.cpp)
+
+add_dependencies(dapps_store_admin_app dapps_store_contract_header)
+copy_shader(dapps_store_admin_app)

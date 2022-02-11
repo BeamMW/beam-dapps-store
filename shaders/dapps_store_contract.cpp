@@ -10,7 +10,12 @@ namespace DAppsStore
     {
     }
 
-    BEAM_EXPORT void Method_2(const Method::AddPublisher& args)
+    BEAM_EXPORT void Method_2(void*)
+    {
+        // for upgrade
+    }
+
+    BEAM_EXPORT void Method_3(const Method::AddPublisher& args)
     {
         Env::AddSig(args.m_Publisher);
 
@@ -25,7 +30,7 @@ namespace DAppsStore
         Env::SaveVar_T(key, publisher);
     }
 
-    BEAM_EXPORT void Method_3(const Method::UpdatePublisher& args)
+    BEAM_EXPORT void Method_4(const Method::UpdatePublisher& args)
     {
         Env::AddSig(args.m_Publisher);
 
@@ -40,10 +45,10 @@ namespace DAppsStore
         Env::SaveVar_T(key, publisher);
     }
 
-    BEAM_EXPORT void Method_4(const Method::DeletePublisher& /*args*/)
+    BEAM_EXPORT void Method_5(const Method::DeletePublisher& /*args*/)
     {}
 
-    BEAM_EXPORT void Method_5(const Method::AddDApp& args)
+    BEAM_EXPORT void Method_6(const Method::AddDApp& args)
     {
         Env::AddSig(args.m_Publisher);
 
@@ -71,7 +76,7 @@ namespace DAppsStore
         Env::SaveVar_T(key, dapp);
     }
 
-    BEAM_EXPORT void Method_6(const Method::UpdateDApp& args)
+    BEAM_EXPORT void Method_7(const Method::UpdateDApp& args)
     {
         DApp::Key key;
         _POD_(key.m_Id) = args.m_Id;
@@ -91,7 +96,7 @@ namespace DAppsStore
         Env::SaveVar_T(key, dapp);
     }
 
-    BEAM_EXPORT void Method_7(const Method::DeleteDApp& args)
+    BEAM_EXPORT void Method_8(const Method::DeleteDApp& args)
     {
         DApp::Key key;
         _POD_(key.m_Id) = args.m_Id;
