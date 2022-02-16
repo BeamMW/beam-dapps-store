@@ -23,6 +23,16 @@ namespace
     const char* MINOR = "minor";
     const char* RELEASE = "release";
     const char* BUILD = "build";
+    const char* SHORT_TITLE = "short_title";
+    const char* ABOUT_ME = "about_me";
+    const char* WEBSITE = "website";
+    const char* TWITTER = "twitter";
+    const char* LINKEDIN = "linkedin";
+    const char* INSTAGRAM = "instagram";
+    const char* TELEGRAM = "telegram";
+    const char* DISCORD = "discord";
+    const char* TIMESTAMP = "timestamp";
+    const char* CATEGORY = "category";
 
     namespace Actions
     {
@@ -70,6 +80,26 @@ namespace
     void OnError(const char* sz)
     {
         Env::DocAddText("error", sz);
+    }
+
+    bool ReadPublisherMetadate(DAppsStore::Method::PublisherBase& args)
+    {
+        if (!Env::DocGetText(NAME, args.m_Name, DAppsStore::Publisher::NAME_MAX_SIZE))
+        {
+            OnError("name should be specified");
+            return false;
+        }
+
+        Env::DocGetText(SHORT_TITLE, args.m_ShortTitle, DAppsStore::Publisher::SHORT_TITLE_MAX_SIZE);
+        Env::DocGetText(ABOUT_ME, args.m_AboutMe, DAppsStore::Publisher::ABOUT_ME_MAX_SIZE);
+        Env::DocGetText(WEBSITE, args.m_Website, DAppsStore::Publisher::WEBSITE_MAX_SIZE);
+        Env::DocGetText(TWITTER, args.m_Twitter, DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE);
+        Env::DocGetText(LINKEDIN, args.m_Linkedin, DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE);
+        Env::DocGetText(INSTAGRAM, args.m_Instagram, DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE);
+        Env::DocGetText(TELEGRAM, args.m_Telegram, DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE);
+        Env::DocGetText(DISCORD, args.m_Discord, DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE);
+
+        return true;
     }
 
     bool ReadDAppMetadata(DAppsStore::Method::Base& args)
@@ -131,6 +161,12 @@ namespace
         if (!Env::DocGetText(MIN_API_VERSION, args.m_MinApiVersion, DAppsStore::DApp::API_VERSION_MAX_SIZE))
         {
             OnError("min_api_ver should be specified");
+            return false;
+        }
+
+        if (!Env::DocGetNum32(CATEGORY, &args.m_Category))
+        {
+            OnError("category should be specified");
             return false;
         }
 
@@ -275,9 +311,8 @@ namespace manager
             return;
         }
 
-        if (!Env::DocGetText(NAME, args.m_Name, DAppsStore::Publisher::NAME_MAX_SIZE))
+        if (!ReadPublisherMetadate(args))
         {
-            OnError("name should be specified");
             return;
         }
 
@@ -299,9 +334,8 @@ namespace manager
             return;
         }
 
-        if (!Env::DocGetText(NAME, args.m_Name, DAppsStore::Publisher::NAME_MAX_SIZE))
+        if (!ReadPublisherMetadate(args))
         {
-            OnError("name should be specified");
             return;
         }
 
@@ -329,6 +363,14 @@ namespace manager
             Env::DocGroup gr("");
             Env::DocAddBlob_T(PUBKEY, k0.m_KeyInContract.m_PubKey);
             Env::DocAddText(NAME, publisher.m_Name);
+            Env::DocAddText(SHORT_TITLE, publisher.m_ShortTitle);
+            Env::DocAddText(ABOUT_ME, publisher.m_AboutMe);
+            Env::DocAddText(WEBSITE, publisher.m_Website);
+            Env::DocAddText(TWITTER, publisher.m_Twitter);
+            Env::DocAddText(LINKEDIN, publisher.m_Linkedin);
+            Env::DocAddText(INSTAGRAM, publisher.m_Instagram);
+            Env::DocAddText(TELEGRAM, publisher.m_Telegram);
+            Env::DocAddText(DISCORD, publisher.m_Discord);
         }
     }
 
@@ -434,6 +476,8 @@ namespace manager
             Env::DocAddText(MIN_API_VERSION, dapp.m_MinApiVersion);
             Env::DocAddBlob_T(PUBLISHER, dapp.m_Publisher);
             Env::DocAddText(IPFS_ID, dapp.m_IPFSId);
+            Env::DocAddNum64(TIMESTAMP, dapp.m_Timestamp);
+            Env::DocAddNum32(CATEGORY, dapp.m_Category);
 
             Env::DocGroup version(VERSION);
             Env::DocAddNum32(MAJOR, dapp.m_Version.m_Major);
@@ -455,6 +499,7 @@ BEAM_EXPORT void Method_0()
     {
         Env::DocGroup grMethod(Actions::ADD_PUBLISHER);
         Env::DocAddText(CONTRACT_ID, "ContractID");
+        Env::DocAddText(NAME, "string");
         Env::DocAddText(NAME, "string");
     }
     {

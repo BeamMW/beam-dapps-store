@@ -26,6 +26,14 @@ namespace DAppsStore
         // if the publisher exists then abort
         Env::Halt_if(Env::LoadVar_T(key, publisher));
         Env::Memcpy(publisher.m_Name, args.m_Name, Publisher::NAME_MAX_SIZE);
+        Env::Memcpy(publisher.m_ShortTitle, args.m_ShortTitle, Publisher::SHORT_TITLE_MAX_SIZE);
+        Env::Memcpy(publisher.m_AboutMe, args.m_AboutMe, Publisher::ABOUT_ME_MAX_SIZE);
+        Env::Memcpy(publisher.m_Website, args.m_Website, Publisher::WEBSITE_MAX_SIZE);
+        Env::Memcpy(publisher.m_Twitter, args.m_Twitter, Publisher::SOCIAL_NICK_MAX_SIZE);
+        Env::Memcpy(publisher.m_Linkedin, args.m_Linkedin, Publisher::SOCIAL_NICK_MAX_SIZE);
+        Env::Memcpy(publisher.m_Instagram, args.m_Instagram, Publisher::SOCIAL_NICK_MAX_SIZE);
+        Env::Memcpy(publisher.m_Telegram, args.m_Telegram, Publisher::SOCIAL_NICK_MAX_SIZE);
+        Env::Memcpy(publisher.m_Discord, args.m_Discord, Publisher::SOCIAL_NICK_MAX_SIZE);
 
         Env::SaveVar_T(key, publisher);
     }
@@ -41,6 +49,14 @@ namespace DAppsStore
         // if the publisher is missing then abort
         Env::Halt_if(!Env::LoadVar_T(key, publisher));
         Env::Memcpy(publisher.m_Name, args.m_Name, Publisher::NAME_MAX_SIZE);
+        Env::Memcpy(publisher.m_ShortTitle, args.m_ShortTitle, Publisher::SHORT_TITLE_MAX_SIZE);
+        Env::Memcpy(publisher.m_AboutMe, args.m_AboutMe, Publisher::ABOUT_ME_MAX_SIZE);
+        Env::Memcpy(publisher.m_Website, args.m_Website, Publisher::WEBSITE_MAX_SIZE);
+        Env::Memcpy(publisher.m_Twitter, args.m_Twitter, Publisher::SOCIAL_NICK_MAX_SIZE);
+        Env::Memcpy(publisher.m_Linkedin, args.m_Linkedin, Publisher::SOCIAL_NICK_MAX_SIZE);
+        Env::Memcpy(publisher.m_Instagram, args.m_Instagram, Publisher::SOCIAL_NICK_MAX_SIZE);
+        Env::Memcpy(publisher.m_Telegram, args.m_Telegram, Publisher::SOCIAL_NICK_MAX_SIZE);
+        Env::Memcpy(publisher.m_Discord, args.m_Discord, Publisher::SOCIAL_NICK_MAX_SIZE);
 
         Env::SaveVar_T(key, publisher);
     }
@@ -69,6 +85,13 @@ namespace DAppsStore
         Env::Memcpy(dapp.m_ApiVersion, args.m_ApiVersion, DApp::API_VERSION_MAX_SIZE);
         Env::Memcpy(dapp.m_MinApiVersion, args.m_MinApiVersion, DApp::API_VERSION_MAX_SIZE);
         _POD_(dapp.m_Version) = args.m_Version;
+        dapp.m_Category = args.m_Category;
+
+        BlockHeader::Info hdr;
+        hdr.m_Height = Env::get_Height();
+        Env::get_HdrInfo(hdr);
+
+        dapp.m_Timestamp = hdr.m_Timestamp;
 
         Env::SaveVar_T(key, dapp);
     }
@@ -89,6 +112,13 @@ namespace DAppsStore
         Env::Memcpy(dapp.m_ApiVersion, args.m_ApiVersion, DApp::API_VERSION_MAX_SIZE);
         Env::Memcpy(dapp.m_MinApiVersion, args.m_MinApiVersion, DApp::API_VERSION_MAX_SIZE);
         _POD_(dapp.m_Version) = args.m_Version;
+        dapp.m_Category = args.m_Category;
+
+        BlockHeader::Info hdr;
+        hdr.m_Height = Env::get_Height();
+        Env::get_HdrInfo(hdr);
+
+        dapp.m_Timestamp = hdr.m_Timestamp;
 
         Env::SaveVar_T(key, dapp);
     }
