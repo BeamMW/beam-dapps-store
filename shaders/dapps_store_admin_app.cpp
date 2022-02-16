@@ -14,6 +14,8 @@ namespace
     const char* UPGRADE_DELAY = "hUpgradeDelay";
     const char* MIN_APPROVERS = "nMinApprovers";
     const char* PUBKEY = "pubkey";
+    const char* CONTRACT_ID = "cid";
+    const char* TARGET = "target";
 
     namespace Actions
     {
@@ -21,6 +23,8 @@ namespace
         const char* VIEW = "view";
         const char* GET_ADMIN_PK = "get_admin_pk";
         const char* DEPLOY_CONTRACT = "deploy_contract";
+        const char* UPGRADE = "upgrade";
+        const char* SCHEDULE_UPGRADE = "schedule_upgrade";
     } // namespace Actions
 
     void OnError(const char* sz)
@@ -31,7 +35,8 @@ namespace
     const char ADMIN_SEED[] = "upgr2-dapps-store";
 
     struct MyAdminKeyID :public Env::KeyID {
-        MyAdminKeyID() :Env::KeyID(&ADMIN_SEED, sizeof(ADMIN_SEED)) {}
+        MyAdminKeyID() : Env::KeyID(&ADMIN_SEED, sizeof(ADMIN_SEED)) 
+        {}
     };
 } // namespace
 
@@ -45,6 +50,7 @@ namespace manager
     void View()
     {
         static const ShaderID s_pSid[] = {
+            {0xac,0x50,0x8d,0x67,0x17,0xb0,0x10,0xed,0x13,0x0c,0x18,0xfb,0x24,0xd5,0x7c,0xeb,0x4c,0x6f,0xbd,0xd5,0xfc,0x80,0x3f,0xd2,0x85,0x63,0xd4,0x77,0x2d,0xed,0xc9,0x35},
             DAppsStore::s_SID,
         };
 
@@ -81,6 +87,45 @@ namespace manager
 
         Env::GenerateKernel(nullptr, 0, &arg, sizeof(arg), nullptr, 0, nullptr, 0, "Deploy DappsStore contract", 2005980);
     }
+
+    void ScheduleUpgrade()
+    {
+        ContractID cid;
+        if (!Env::DocGet(CONTRACT_ID, cid))
+        {
+            OnError("cid should be specified");
+            return;
+        }
+
+        ContractID cidVersion;
+        if (!Env::DocGet(CID_VERSION, cidVersion))
+        {
+            OnError("cidVersion should be specified");
+            return;
+        }
+
+        Height hTarget;
+        if (!Env::DocGetNum64(TARGET, &hTarget))
+        {
+            OnError("target should be specified");
+            return;
+        }
+
+        MyAdminKeyID kid;
+        ManagerUpgadable2::MultiSigRitual::Perform_ScheduleUpgrade(cid, kid, cidVersion, hTarget);
+    }
+
+    void Upgrade()
+    {
+        ContractID cid;
+        if (!Env::DocGet(CONTRACT_ID, cid))
+        {
+            OnError("cid should be specified");
+            return;
+        }
+
+        ManagerUpgadable2::MultiSigRitual::Perform_ExplicitUpgrade(cid);
+    }
 } // namespace manager
 
 BEAM_EXPORT void Method_0()
@@ -101,6 +146,16 @@ BEAM_EXPORT void Method_0()
         Env::DocAddText(UPGRADE_DELAY, "Height");
         Env::DocAddText(MIN_APPROVERS, "uint32_t");
     }
+    {
+        Env::DocGroup grMethod(Actions::SCHEDULE_UPGRADE);
+        Env::DocAddText(CONTRACT_ID, "ContractID");
+        Env::DocAddText(CID_VERSION, "ContractID");
+        Env::DocAddText(TARGET, "Height");
+    }
+    {
+        Env::DocGroup grMethod(Actions::UPGRADE);
+        Env::DocAddText(CONTRACT_ID, "ContractID");
+    }
 }
 
 BEAM_EXPORT void Method_1()
@@ -111,7 +166,7 @@ BEAM_EXPORT void Method_1()
 
     if (!Env::DocGetText("action", szAction, sizeof(szAction)))
     {
-        OnError("Action not specified");
+        OnError("action should be specified");
         return;
     }
 
@@ -130,5 +185,17 @@ BEAM_EXPORT void Method_1()
     else if (!Env::Strcmp(szAction, Actions::DEPLOY_CONTRACT))
     {
         manager::DeployContract();
+    }
+    else if (!Env::Strcmp(szAction, Actions::SCHEDULE_UPGRADE))
+    {
+        manager::ScheduleUpgrade();
+    }
+    else if (!Env::Strcmp(szAction, Actions::UPGRADE))
+    {
+        manager::Upgrade();
+    }
+    else
+    {
+        OnError("invalid Action.");
     }
 }

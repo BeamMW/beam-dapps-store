@@ -82,13 +82,6 @@ namespace DAppsStore
             char m_Name[Publisher::NAME_MAX_SIZE];
         };
 
-        struct DeletePublisher
-        {
-            static const uint32_t METHOD_ID = 5;
-
-            PubKey m_Publisher;
-        };
-
         struct Base
         {
             DAppId m_Id;
@@ -102,19 +95,19 @@ namespace DAppsStore
 
         struct AddDApp: public Base
         {
-            static const uint32_t METHOD_ID = 6;
+            static const uint32_t METHOD_ID = 5;
 
             PubKey m_Publisher;
         };
 
         struct UpdateDApp: public Base
         {
-            static const uint32_t METHOD_ID = 7;
+            static const uint32_t METHOD_ID = 6;
         };
 
         struct DeleteDApp
         {
-            static const uint32_t METHOD_ID = 8;
+            static const uint32_t METHOD_ID = 7;
 
             DAppId m_Id;
         };

@@ -257,18 +257,6 @@ namespace manager
 {
     ContractID cid;
 
-    void Create()
-    {
-        DAppsStore::Method::Create args;
-
-        Env::GenerateKernel(nullptr, args.METHOD_ID, &args, sizeof(args), nullptr, 0, nullptr, 0, "create DApps Store contract", 0);
-    }
-
-    void View()
-    {
-        EnumAndDumpContracts(DAppsStore::s_SID);
-    }
-
     void GetPk()
     {
         PubKey pk;
@@ -461,12 +449,6 @@ BEAM_EXPORT void Method_0()
     // scheme
     Env::DocGroup root("");
     {
-        Env::DocGroup grMethod(Actions::CREATE);
-    }
-    {
-        Env::DocGroup grMethod(Actions::VIEW);
-    }
-    {
         Env::DocGroup grMethod(Actions::GET_PK);
         Env::DocAddText(CONTRACT_ID, "ContractID");
     }
@@ -534,57 +516,50 @@ BEAM_EXPORT void Method_1()
 
     if (!Env::DocGetText("action", szAction, sizeof(szAction)))
     {
-        OnError("Action not specified");
+        OnError("action should be specified");
+        return;
+    }
+    
+    if (!Env::DocGet(CONTRACT_ID, manager::cid))
+    {
+        OnError("cid should be specified");
         return;
     }
 
-    if (!Env::Strcmp(szAction, Actions::CREATE))
+    if (!Env::Strcmp(szAction, Actions::GET_PK))
     {
-        manager::Create();
+        manager::GetPk();
     }
-    else if (!Env::Strcmp(szAction, Actions::VIEW))
+    else if (!Env::Strcmp(szAction, Actions::ADD_PUBLISHER))
     {
-        manager::View();
+        manager::AddPublisher();
+    }
+    else if (!Env::Strcmp(szAction, Actions::UPDATE_PUBLISHER))
+    {
+        manager::UpdatePublisher();
+    }
+    else if (!Env::Strcmp(szAction, Actions::VIEW_PUBLISHERS))
+    {
+        manager::ViewPublishers();
+    }
+    else if (!Env::Strcmp(szAction, Actions::ADD_DAPP))
+    {
+        manager::AddDApp();
+    }
+    else if (!Env::Strcmp(szAction, Actions::UPDATE_DAPP))
+    {
+        manager::UpdateDApp();
+    }
+    else if (!Env::Strcmp(szAction, Actions::DELETE_DAPP))
+    {
+        manager::DeleteDApp();
+    }
+    else if (!Env::Strcmp(szAction, Actions::VIEW_DAPPS))
+    {
+        manager::ViewDApps();
     }
     else
     {
-        Env::DocGet(CONTRACT_ID, manager::cid);
-
-        if (!Env::Strcmp(szAction, Actions::GET_PK))
-        {
-            manager::GetPk();
-        }
-        else if (!Env::Strcmp(szAction, Actions::ADD_PUBLISHER))
-        {
-            manager::AddPublisher();
-        }
-        else if (!Env::Strcmp(szAction, Actions::UPDATE_PUBLISHER))
-        {
-            manager::UpdatePublisher();
-        }
-        else if (!Env::Strcmp(szAction, Actions::VIEW_PUBLISHERS))
-        {
-            manager::ViewPublishers();
-        }
-        else if (!Env::Strcmp(szAction, Actions::ADD_DAPP))
-        {
-            manager::AddDApp();
-        }
-        else if (!Env::Strcmp(szAction, Actions::UPDATE_DAPP))
-        {
-            manager::UpdateDApp();
-        }
-        else if (!Env::Strcmp(szAction, Actions::DELETE_DAPP))
-        {
-            manager::DeleteDApp();
-        }
-        else if (!Env::Strcmp(szAction, Actions::VIEW_DAPPS))
-        {
-            manager::ViewDApps();
-        }
-        else
-        {
-            OnError("invalid Action.");
-        }
+        OnError("invalid Action.");
     }
 }
