@@ -33,6 +33,7 @@ namespace
     const char* DISCORD = "discord";
     const char* TIMESTAMP = "timestamp";
     const char* CATEGORY = "category";
+    const char* ICON = "icon";
 
     namespace Actions
     {
@@ -376,22 +377,26 @@ namespace manager
 
     void AddDApp()
     {
-        DAppsStore::Method::AddDApp args;
+        const uint32_t iconSize = Env::DocGetBlob(ICON, nullptr, 0);
+        const uint32_t argsSize = iconSize + sizeof(DAppsStore::Method::AddDApp);
+        auto* args = static_cast<DAppsStore::Method::AddDApp*>(Env::Heap_Alloc(argsSize));
 
-        if (!ReadDAppMetadata(args))
+        Env::DocGetBlob(ICON, reinterpret_cast<uint8_t*>(args + 1), iconSize);
+
+        if (!ReadDAppMetadata(*args))
         {
             return;
         }
         
-        if (IsExistDApp(cid, args.m_Id))
+        if (IsExistDApp(cid, args->m_Id))
         {
             OnError("the dapp exists");
             return;
         }
 
-        Env::DerivePk(args.m_Publisher, &cid, sizeof(cid));
+        Env::DerivePk(args->m_Publisher, &cid, sizeof(cid));
 
-        if (!IsExistPublisher(cid, args.m_Publisher))
+        if (!IsExistPublisher(cid, args->m_Publisher))
         {
             OnError("the publisher is missing");
             return;
@@ -401,19 +406,25 @@ namespace manager
         sig.m_pID = &cid;
         sig.m_nID = sizeof(cid);
 
-        Env::GenerateKernel(&cid, args.METHOD_ID, &args, sizeof(args), nullptr, 0, &sig, 1, "add dapp to store", 170000);
+        Env::GenerateKernel(&cid, DAppsStore::Method::AddDApp::METHOD_ID, args, argsSize, nullptr, 0, &sig, 1, "add dapp to store", 170000);
+
+        Env::Heap_Free(args);
     }
 
     void UpdateDApp()
     {
-        DAppsStore::Method::UpdateDApp args;
+        const uint32_t iconSize = Env::DocGetBlob(ICON, nullptr, 0);
+        const uint32_t argsSize = iconSize + sizeof(DAppsStore::Method::UpdateDApp);
+        auto* args = static_cast<DAppsStore::Method::UpdateDApp*>(Env::Heap_Alloc(argsSize));
 
-        if (!ReadDAppMetadata(args))
+        Env::DocGetBlob(ICON, reinterpret_cast<uint8_t*>(args + 1), iconSize);
+
+        if (!ReadDAppMetadata(*args))
         {
             return;
         }
 
-        if (!IsExistDApp(cid, args.m_Id))
+        if (!IsExistDApp(cid, args->m_Id))
         {
             OnError("the dapp is missing");
             return;
@@ -423,7 +434,9 @@ namespace manager
         sig.m_pID = &cid;
         sig.m_nID = sizeof(cid);
 
-        Env::GenerateKernel(&cid, args.METHOD_ID, &args, sizeof(args), nullptr, 0, &sig, 1, "update dapp", 0);
+        Env::GenerateKernel(&cid, DAppsStore::Method::UpdateDApp::METHOD_ID, args, argsSize, nullptr, 0, &sig, 1, "update dapp", 0);
+
+        Env::Heap_Free(args);
     }
 
     void DeleteDApp()
@@ -460,30 +473,46 @@ namespace manager
         _POD_(k1.m_KeyInContract.m_Id).SetObject(0xff);
 
         Env::VarReader reader(k0, k1);
-        DAppsStore::DApp dapp;
 
         Env::DocArray arr("dapps");
-        while (reader.MoveNext_T(k0, dapp))
+        while (true)
         {
-            if (publishers.NeedFilter() && !publishers.HasPubKey(dapp.m_Publisher))
+            uint32_t keySize = sizeof(k0);
+            uint32_t size = 0;
+
+            if (!reader.MoveNext(&k0, keySize, nullptr, size, 0))
+                break;
+
+            if ((sizeof(k0) != keySize) || (size < sizeof(DAppsStore::DApp)))
+                continue;
+
+            auto* dapp = static_cast<DAppsStore::DApp*>(Env::Heap_Alloc(size));
+
+            reader.MoveNext(&k0, keySize, dapp, size, 1);
+
+            if (publishers.NeedFilter() && !publishers.HasPubKey(dapp->m_Publisher))
                 continue;
 
             Env::DocGroup gr("");
             Env::DocAddBlob_T(DAPP_ID, k0.m_KeyInContract.m_Id);
-            Env::DocAddText(NAME, dapp.m_Name);
-            Env::DocAddText(DESCRIPTION, dapp.m_Description);
-            Env::DocAddText(API_VERSION, dapp.m_ApiVersion);
-            Env::DocAddText(MIN_API_VERSION, dapp.m_MinApiVersion);
-            Env::DocAddBlob_T(PUBLISHER, dapp.m_Publisher);
-            Env::DocAddText(IPFS_ID, dapp.m_IPFSId);
-            Env::DocAddNum64(TIMESTAMP, dapp.m_Timestamp);
-            Env::DocAddNum32(CATEGORY, dapp.m_Category);
+            Env::DocAddText(NAME, dapp->m_Name);
+            Env::DocAddText(DESCRIPTION, dapp->m_Description);
+            Env::DocAddText(API_VERSION, dapp->m_ApiVersion);
+            Env::DocAddText(MIN_API_VERSION, dapp->m_MinApiVersion);
+            Env::DocAddBlob_T(PUBLISHER, dapp->m_Publisher);
+            Env::DocAddText(IPFS_ID, dapp->m_IPFSId);
+            Env::DocAddNum64(TIMESTAMP, dapp->m_Timestamp);
+            Env::DocAddNum32(CATEGORY, dapp->m_Category);
+
+            Env::DocAddBlob(ICON, (dapp + 1), size - sizeof(DAppsStore::DApp));
 
             Env::DocGroup version(VERSION);
-            Env::DocAddNum32(MAJOR, dapp.m_Version.m_Major);
-            Env::DocAddNum32(MINOR, dapp.m_Version.m_Minor);
-            Env::DocAddNum32(RELEASE, dapp.m_Version.m_Release);
-            Env::DocAddNum32(BUILD, dapp.m_Version.m_Build);
+            Env::DocAddNum32(MAJOR, dapp->m_Version.m_Major);
+            Env::DocAddNum32(MINOR, dapp->m_Version.m_Minor);
+            Env::DocAddNum32(RELEASE, dapp->m_Version.m_Release);
+            Env::DocAddNum32(BUILD, dapp->m_Version.m_Build);
+
+            Env::Heap_Free(dapp);
         }
     }
 } // namespace manager
@@ -525,6 +554,8 @@ BEAM_EXPORT void Method_0()
         Env::DocAddText(MINOR, "uint32_t");
         Env::DocAddText(RELEASE, "uint32_t");
         Env::DocAddText(BUILD, "uint32_t");
+        // icon
+        Env::DocAddText(ICON, "icon");
     }
     {
         Env::DocGroup grMethod(Actions::UPDATE_DAPP);
@@ -540,6 +571,8 @@ BEAM_EXPORT void Method_0()
         Env::DocAddText(MINOR, "uint32_t");
         Env::DocAddText(RELEASE, "uint32_t");
         Env::DocAddText(BUILD, "uint32_t");
+        // icon
+        Env::DocAddText(ICON, "icon");
     }
     {
         Env::DocGroup grMethod(Actions::DELETE_DAPP);

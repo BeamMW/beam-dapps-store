@@ -72,7 +72,6 @@ namespace DAppsStore
         Timestamp m_Timestamp;
         uint32_t m_Category;
         // followed by icon
-        // TODO implemented
     };
 
     namespace Method
@@ -117,6 +116,7 @@ namespace DAppsStore
             char m_MinApiVersion[DApp::API_VERSION_MAX_SIZE];
             Version m_Version;
             uint32_t m_Category;
+            uint32_t m_IconSize;
         };
 
         struct AddDApp: public Base
@@ -124,11 +124,13 @@ namespace DAppsStore
             static const uint32_t METHOD_ID = 5;
 
             PubKey m_Publisher;
+            // followed by icon
         };
 
         struct UpdateDApp: public Base
         {
             static const uint32_t METHOD_ID = 6;
+            // followed by icon
         };
 
         struct DeleteDApp
