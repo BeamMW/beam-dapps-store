@@ -43,6 +43,7 @@ namespace
         const char* ADD_PUBLISHER = "add_publisher";
         const char* UPDATE_PUBLISHER = "update_publisher";
         const char* VIEW_PUBLISHERS = "view_publishers";
+        const char* MY_PUBLISHER_INFO = "my_publsiher_info";
         const char* ADD_DAPP = "add_dapp";
         const char* UPDATE_DAPP = "update_dapp";
         const char* DELETE_DAPP = "delete_dapp";
@@ -375,6 +376,32 @@ namespace manager
         }
     }
 
+    void MyPublisherInfo()
+    {
+        PubKey pk;
+        Env::DerivePk(pk, &cid, sizeof(cid));
+
+        Env::Key_T<DAppsStore::Publisher::Key> k;
+        _POD_(k.m_Prefix.m_Cid) = cid;
+        _POD_(k.m_KeyInContract.m_PubKey) = pk;
+
+        DAppsStore::Publisher publisher;
+        Env::DocGroup gr(Actions::MY_PUBLISHER_INFO);
+        if (Env::VarReader::Read_T(k, publisher))
+        {
+            Env::DocAddBlob_T(PUBKEY, k.m_KeyInContract.m_PubKey);
+            Env::DocAddText(NAME, publisher.m_Name);
+            Env::DocAddText(SHORT_TITLE, publisher.m_ShortTitle);
+            Env::DocAddText(ABOUT_ME, publisher.m_AboutMe);
+            Env::DocAddText(WEBSITE, publisher.m_Website);
+            Env::DocAddText(TWITTER, publisher.m_Twitter);
+            Env::DocAddText(LINKEDIN, publisher.m_Linkedin);
+            Env::DocAddText(INSTAGRAM, publisher.m_Instagram);
+            Env::DocAddText(TELEGRAM, publisher.m_Telegram);
+            Env::DocAddText(DISCORD, publisher.m_Discord);
+        }
+    }
+
     void AddDApp()
     {
         const uint32_t iconSize = Env::DocGetBlob(ICON, nullptr, 0);
@@ -541,6 +568,10 @@ BEAM_EXPORT void Method_0()
         Env::DocAddText(CONTRACT_ID, "ContractID");
     }
     {
+        Env::DocGroup grMethod(Actions::MY_PUBLISHER_INFO);
+        Env::DocAddText(CONTRACT_ID, "ContractID");
+    }
+    {
         Env::DocGroup grMethod(Actions::ADD_DAPP);
         Env::DocAddText(CONTRACT_ID, "ContractID");
         Env::DocAddText(DAPP_ID, "DAppId");
@@ -619,6 +650,10 @@ BEAM_EXPORT void Method_1()
     else if (!Env::Strcmp(szAction, Actions::VIEW_PUBLISHERS))
     {
         manager::ViewPublishers();
+    }
+    else if (!Env::Strcmp(szAction, Actions::MY_PUBLISHER_INFO))
+    {
+        manager::MyPublisherInfo();
     }
     else if (!Env::Strcmp(szAction, Actions::ADD_DAPP))
     {
