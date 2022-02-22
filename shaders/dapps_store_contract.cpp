@@ -22,20 +22,27 @@ namespace DAppsStore
         Publisher::Key key;
         _POD_(key.m_PubKey) = args.m_Publisher;
 
-        Publisher publisher;
         // if the publisher exists then abort
-        Env::Halt_if(Env::LoadVar_T(key, publisher));
-        Env::Memcpy(publisher.m_Name, args.m_Name, Publisher::NAME_MAX_SIZE);
-        Env::Memcpy(publisher.m_ShortTitle, args.m_ShortTitle, Publisher::SHORT_TITLE_MAX_SIZE);
-        Env::Memcpy(publisher.m_AboutMe, args.m_AboutMe, Publisher::ABOUT_ME_MAX_SIZE);
-        Env::Memcpy(publisher.m_Website, args.m_Website, Publisher::WEBSITE_MAX_SIZE);
-        Env::Memcpy(publisher.m_Twitter, args.m_Twitter, Publisher::SOCIAL_NICK_MAX_SIZE);
-        Env::Memcpy(publisher.m_Linkedin, args.m_Linkedin, Publisher::SOCIAL_NICK_MAX_SIZE);
-        Env::Memcpy(publisher.m_Instagram, args.m_Instagram, Publisher::SOCIAL_NICK_MAX_SIZE);
-        Env::Memcpy(publisher.m_Telegram, args.m_Telegram, Publisher::SOCIAL_NICK_MAX_SIZE);
-        Env::Memcpy(publisher.m_Discord, args.m_Discord, Publisher::SOCIAL_NICK_MAX_SIZE);
+        Env::Halt_if(Env::LoadVar(&key, sizeof(key), nullptr, 0, KeyTag::Internal) > 0);
+        uint32_t publisherSize = sizeof(Publisher) + args.m_NameSize + args.m_ShortTitleSize + args.m_AboutMeSize +
+            args.m_WebsiteSize + args.m_TwitterSize + args.m_LinkedinSize + args.m_InstagramSize +
+            args.m_TelegramSize + args.m_DiscordSize;
+        auto* publisher = static_cast<Publisher*>(Env::Heap_Alloc(publisherSize));
 
-        Env::SaveVar_T(key, publisher);
+        publisher->m_NameSize = args.m_NameSize;
+        publisher->m_ShortTitleSize = args.m_ShortTitleSize;
+        publisher->m_AboutMeSize = args.m_AboutMeSize;
+        publisher->m_WebsiteSize = args.m_WebsiteSize;
+        publisher->m_TwitterSize = args.m_TwitterSize;
+        publisher->m_LinkedinSize = args.m_LinkedinSize;
+        publisher->m_InstagramSize = args.m_InstagramSize;
+        publisher->m_TelegramSize = args.m_TelegramSize;
+        publisher->m_DiscordSize = args.m_DiscordSize;
+
+        Env::Memcpy(static_cast<void*>(publisher + 1), static_cast<const void*>(&args + 1), publisherSize - sizeof(Publisher));
+
+        Env::SaveVar(&key, sizeof(key), publisher, publisherSize, KeyTag::Internal);
+        Env::Heap_Free(publisher);
     }
 
     BEAM_EXPORT void Method_4(const Method::UpdatePublisher& args)
@@ -45,20 +52,28 @@ namespace DAppsStore
         Publisher::Key key;
         _POD_(key.m_PubKey) = args.m_Publisher;
 
-        Publisher publisher;
         // if the publisher is missing then abort
-        Env::Halt_if(!Env::LoadVar_T(key, publisher));
-        Env::Memcpy(publisher.m_Name, args.m_Name, Publisher::NAME_MAX_SIZE);
-        Env::Memcpy(publisher.m_ShortTitle, args.m_ShortTitle, Publisher::SHORT_TITLE_MAX_SIZE);
-        Env::Memcpy(publisher.m_AboutMe, args.m_AboutMe, Publisher::ABOUT_ME_MAX_SIZE);
-        Env::Memcpy(publisher.m_Website, args.m_Website, Publisher::WEBSITE_MAX_SIZE);
-        Env::Memcpy(publisher.m_Twitter, args.m_Twitter, Publisher::SOCIAL_NICK_MAX_SIZE);
-        Env::Memcpy(publisher.m_Linkedin, args.m_Linkedin, Publisher::SOCIAL_NICK_MAX_SIZE);
-        Env::Memcpy(publisher.m_Instagram, args.m_Instagram, Publisher::SOCIAL_NICK_MAX_SIZE);
-        Env::Memcpy(publisher.m_Telegram, args.m_Telegram, Publisher::SOCIAL_NICK_MAX_SIZE);
-        Env::Memcpy(publisher.m_Discord, args.m_Discord, Publisher::SOCIAL_NICK_MAX_SIZE);
+        Env::Halt_if(Env::LoadVar(&key, sizeof(key), nullptr, 0, KeyTag::Internal) < sizeof(Publisher));
+        uint32_t publisherSize = sizeof(Publisher) + args.m_NameSize + args.m_ShortTitleSize + args.m_AboutMeSize +
+            args.m_WebsiteSize + args.m_TwitterSize + args.m_LinkedinSize + args.m_InstagramSize +
+            args.m_TelegramSize + args.m_DiscordSize;
+        auto* publisher = static_cast<Publisher*>(Env::Heap_Alloc(publisherSize));
 
-        Env::SaveVar_T(key, publisher);
+        publisher->m_NameSize = args.m_NameSize;
+        publisher->m_ShortTitleSize = args.m_ShortTitleSize;
+        publisher->m_AboutMeSize = args.m_AboutMeSize;
+        publisher->m_WebsiteSize = args.m_WebsiteSize;
+        publisher->m_TwitterSize = args.m_TwitterSize;
+        publisher->m_LinkedinSize = args.m_LinkedinSize;
+        publisher->m_InstagramSize = args.m_InstagramSize;
+        publisher->m_TelegramSize = args.m_TelegramSize;
+        publisher->m_DiscordSize = args.m_DiscordSize;
+
+        Env::Memcpy(static_cast<void*>(publisher + 1), static_cast<const void*>(&args + 1), publisherSize - sizeof(Publisher));
+
+        Env::SaveVar(&key, sizeof(key), publisher, publisherSize, KeyTag::Internal);
+
+        Env::Heap_Free(publisher);
     }
 
     BEAM_EXPORT void Method_5(const Method::AddDApp& args)

@@ -84,22 +84,54 @@ namespace
         Env::DocAddText("error", sz);
     }
 
-    bool ReadPublisherMetadate(DAppsStore::Method::PublisherBase& args)
+    template<typename Type>
+    Type* AllocateForPublisher()
     {
-        if (!Env::DocGetText(NAME, args.m_Name, DAppsStore::Publisher::NAME_MAX_SIZE))
+        uint32_t size = sizeof(Type) + DAppsStore::Publisher::NAME_MAX_SIZE + DAppsStore::Publisher::SHORT_TITLE_MAX_SIZE +
+            DAppsStore::Publisher::ABOUT_ME_MAX_SIZE + DAppsStore::Publisher::WEBSITE_MAX_SIZE + 5 * DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE;
+
+        return static_cast<Type*>(Env::Heap_Alloc(size));
+    }
+
+    template<typename Type>
+    bool GetPublisherMetadata(Type* args, uint32_t& argsSize)
+    {
+        uint8_t* pointer = reinterpret_cast<uint8_t*>(args + 1);
+        args->m_NameSize = Env::DocGetBlob(NAME, pointer, DAppsStore::Publisher::NAME_MAX_SIZE);
+
+        if (args->m_NameSize == 0)
         {
             OnError("name should be specified");
             return false;
         }
+        pointer += args->m_NameSize;
+        Env::DocAddNum32("nameSize", args->m_NameSize);
 
-        Env::DocGetText(SHORT_TITLE, args.m_ShortTitle, DAppsStore::Publisher::SHORT_TITLE_MAX_SIZE);
-        Env::DocGetText(ABOUT_ME, args.m_AboutMe, DAppsStore::Publisher::ABOUT_ME_MAX_SIZE);
-        Env::DocGetText(WEBSITE, args.m_Website, DAppsStore::Publisher::WEBSITE_MAX_SIZE);
-        Env::DocGetText(TWITTER, args.m_Twitter, DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE);
-        Env::DocGetText(LINKEDIN, args.m_Linkedin, DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE);
-        Env::DocGetText(INSTAGRAM, args.m_Instagram, DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE);
-        Env::DocGetText(TELEGRAM, args.m_Telegram, DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE);
-        Env::DocGetText(DISCORD, args.m_Discord, DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE);
+        args->m_ShortTitleSize = Env::DocGetBlob(SHORT_TITLE, pointer, DAppsStore::Publisher::SHORT_TITLE_MAX_SIZE);
+        pointer += args->m_ShortTitleSize;
+
+        args->m_AboutMeSize = Env::DocGetBlob(ABOUT_ME, pointer, DAppsStore::Publisher::ABOUT_ME_MAX_SIZE);
+        pointer += args->m_AboutMeSize;
+
+        args->m_WebsiteSize = Env::DocGetBlob(WEBSITE, pointer, DAppsStore::Publisher::WEBSITE_MAX_SIZE);
+        pointer += args->m_WebsiteSize;
+
+        args->m_TwitterSize = Env::DocGetBlob(TWITTER, pointer, DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE);
+        pointer += args->m_TwitterSize;
+
+        args->m_LinkedinSize = Env::DocGetBlob(LINKEDIN, pointer, DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE);
+        pointer += args->m_LinkedinSize;
+
+        args->m_InstagramSize = Env::DocGetBlob(INSTAGRAM, pointer, DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE);
+        pointer += args->m_InstagramSize;
+
+        args->m_TelegramSize = Env::DocGetBlob(TELEGRAM, pointer, DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE);
+        pointer += args->m_TelegramSize;
+
+        args->m_DiscordSize = Env::DocGetBlob(DISCORD, pointer, DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE);
+        pointer += args->m_DiscordSize;
+
+        argsSize = pointer - reinterpret_cast<uint8_t*>(args);
 
         return true;
     }
@@ -289,6 +321,27 @@ namespace
         PubKey* m_PubKeys = nullptr;
         uint32_t m_Amount = 0;
     };
+
+    void PrintPublisher(uint8_t* pointer, const DAppsStore::Publisher& publisher)
+    {
+        Env::DocAddBlob(NAME, pointer, publisher.m_NameSize);
+        pointer += publisher.m_NameSize;
+        Env::DocAddBlob(SHORT_TITLE, pointer, publisher.m_ShortTitleSize);
+        pointer += publisher.m_ShortTitleSize;
+        Env::DocAddBlob(ABOUT_ME, pointer, publisher.m_AboutMeSize);
+        pointer += publisher.m_AboutMeSize;
+        Env::DocAddBlob(WEBSITE, pointer, publisher.m_WebsiteSize);
+        pointer += publisher.m_WebsiteSize;
+        Env::DocAddBlob(TWITTER, pointer, publisher.m_TwitterSize);
+        pointer += publisher.m_TwitterSize;
+        Env::DocAddBlob(LINKEDIN, pointer, publisher.m_LinkedinSize);
+        pointer += publisher.m_LinkedinSize;
+        Env::DocAddBlob(INSTAGRAM, pointer, publisher.m_InstagramSize);
+        pointer += publisher.m_InstagramSize;
+        Env::DocAddBlob(TELEGRAM, pointer, publisher.m_TelegramSize);
+        pointer += publisher.m_TelegramSize;
+        Env::DocAddBlob(DISCORD, pointer, publisher.m_DiscordSize);
+    }
 } // namespace
 
 namespace manager
@@ -304,48 +357,47 @@ namespace manager
 
     void AddPublisher()
     {
-        DAppsStore::Method::AddPublisher args;
-        Env::DerivePk(args.m_Publisher, &cid, sizeof(cid));
+        auto* args = AllocateForPublisher<DAppsStore::Method::AddPublisher>();
 
-        if (IsExistPublisher(cid, args.m_Publisher))
+        Env::DerivePk(args->m_Publisher, &cid, sizeof(cid));
+
+        uint32_t argsSize = 0;
+        if (IsExistPublisher(cid, args->m_Publisher))
         {
             OnError("the publisher exists");
-            return;
         }
-
-        if (!ReadPublisherMetadate(args))
+        else if (GetPublisherMetadata(args, argsSize))
         {
-            return;
+            SigRequest sig;
+            sig.m_pID = &cid;
+            sig.m_nID = sizeof(cid);
+
+            Env::GenerateKernel(&cid, DAppsStore::Method::AddPublisher::METHOD_ID, args, argsSize, nullptr, 0, &sig, 1, "add publisher to store", 1000000);
         }
 
-        SigRequest sig;
-        sig.m_pID = &cid;
-        sig.m_nID = sizeof(cid);
-
-        Env::GenerateKernel(&cid, args.METHOD_ID, &args, sizeof(args), nullptr, 0, &sig, 1, "add publisher to store", 0);
+        Env::Heap_Free(args);
     }
 
     void UpdatePublisher()
     {
-        DAppsStore::Method::UpdatePublisher args;
-        Env::DerivePk(args.m_Publisher, &cid, sizeof(cid));
+        auto* args = AllocateForPublisher<DAppsStore::Method::UpdatePublisher>();
+        Env::DerivePk(args->m_Publisher, &cid, sizeof(cid));
 
-        if (!IsExistPublisher(cid, args.m_Publisher))
+        uint32_t argsSize = 0;
+        if (!IsExistPublisher(cid, args->m_Publisher))
         {
             OnError("the publisher is missing");
-            return;
         }
-
-        if (!ReadPublisherMetadate(args))
+        else if (GetPublisherMetadata(args, argsSize))
         {
-            return;
+            SigRequest sig;
+            sig.m_pID = &cid;
+            sig.m_nID = sizeof(cid);
+
+            Env::GenerateKernel(&cid, DAppsStore::Method::UpdatePublisher::METHOD_ID, args, argsSize, nullptr, 0, &sig, 1, "update publisher", 0);
         }
 
-        SigRequest sig;
-        sig.m_pID = &cid;
-        sig.m_nID = sizeof(cid);
-
-        Env::GenerateKernel(&cid, args.METHOD_ID, &args, sizeof(args), nullptr, 0, &sig, 1, "update publisher", 0);
+        Env::Heap_Free(args);
     }
 
     void ViewPublishers()
@@ -357,22 +409,27 @@ namespace manager
         _POD_(k1.m_KeyInContract.m_PubKey).SetObject(0xff);
 
         Env::VarReader reader(k0, k1);
-        DAppsStore::Publisher publisher;
-
         Env::DocArray arr("publishers");
-        while (reader.MoveNext_T(k0, publisher))
+        while (true)
         {
+            uint32_t keySize = sizeof(k0);
+            uint32_t size = 0;
+
+            if (!reader.MoveNext(&k0, keySize, nullptr, size, 0))
+                break;
+
+            if ((sizeof(k0) != keySize) || (size < sizeof(DAppsStore::Publisher)))
+                continue;
+
+            auto* publisher = static_cast<DAppsStore::Publisher*>(Env::Heap_Alloc(size));
+
+            reader.MoveNext(&k0, keySize, publisher, size, 1);
+
+            auto* pointer = reinterpret_cast<uint8_t*>(publisher + 1);
+
             Env::DocGroup gr("");
             Env::DocAddBlob_T(PUBKEY, k0.m_KeyInContract.m_PubKey);
-            Env::DocAddText(NAME, publisher.m_Name);
-            Env::DocAddText(SHORT_TITLE, publisher.m_ShortTitle);
-            Env::DocAddText(ABOUT_ME, publisher.m_AboutMe);
-            Env::DocAddText(WEBSITE, publisher.m_Website);
-            Env::DocAddText(TWITTER, publisher.m_Twitter);
-            Env::DocAddText(LINKEDIN, publisher.m_Linkedin);
-            Env::DocAddText(INSTAGRAM, publisher.m_Instagram);
-            Env::DocAddText(TELEGRAM, publisher.m_Telegram);
-            Env::DocAddText(DISCORD, publisher.m_Discord);
+            PrintPublisher(pointer, *publisher);
         }
     }
 
@@ -385,21 +442,26 @@ namespace manager
         _POD_(k.m_Prefix.m_Cid) = cid;
         _POD_(k.m_KeyInContract.m_PubKey) = pk;
 
-        DAppsStore::Publisher publisher;
+        Env::VarReader reader(k, k);
         Env::DocGroup gr(Actions::MY_PUBLISHER_INFO);
-        if (Env::VarReader::Read_T(k, publisher))
-        {
-            Env::DocAddBlob_T(PUBKEY, k.m_KeyInContract.m_PubKey);
-            Env::DocAddText(NAME, publisher.m_Name);
-            Env::DocAddText(SHORT_TITLE, publisher.m_ShortTitle);
-            Env::DocAddText(ABOUT_ME, publisher.m_AboutMe);
-            Env::DocAddText(WEBSITE, publisher.m_Website);
-            Env::DocAddText(TWITTER, publisher.m_Twitter);
-            Env::DocAddText(LINKEDIN, publisher.m_Linkedin);
-            Env::DocAddText(INSTAGRAM, publisher.m_Instagram);
-            Env::DocAddText(TELEGRAM, publisher.m_Telegram);
-            Env::DocAddText(DISCORD, publisher.m_Discord);
-        }
+
+        uint32_t keySize = sizeof(k);
+        uint32_t size = 0;
+
+        if (!reader.MoveNext(&k, keySize, nullptr, size, 0))
+            return;
+
+        if ((sizeof(k) != keySize) || (size < sizeof(DAppsStore::Publisher)))
+            return;
+
+        auto* publisher = static_cast<DAppsStore::Publisher*>(Env::Heap_Alloc(size));
+
+        reader.MoveNext(&k, keySize, publisher, size, 1);
+
+        auto* pointer = reinterpret_cast<uint8_t*>(publisher + 1);
+
+        Env::DocAddBlob_T(PUBKEY, k.m_KeyInContract.m_PubKey);
+        PrintPublisher(pointer, *publisher);
     }
 
     void AddDApp()

@@ -30,15 +30,15 @@ namespace DAppsStore
         static const uint32_t WEBSITE_MAX_SIZE = 100;
         static const uint32_t SOCIAL_NICK_MAX_SIZE = 50;
 
-        char m_Name[NAME_MAX_SIZE];
-        char m_ShortTitle[SHORT_TITLE_MAX_SIZE];
-        char m_AboutMe[ABOUT_ME_MAX_SIZE];
-        char m_Website[WEBSITE_MAX_SIZE];
-        char m_Twitter[SOCIAL_NICK_MAX_SIZE];
-        char m_Linkedin[SOCIAL_NICK_MAX_SIZE];
-        char m_Instagram[SOCIAL_NICK_MAX_SIZE];
-        char m_Telegram[SOCIAL_NICK_MAX_SIZE];
-        char m_Discord[SOCIAL_NICK_MAX_SIZE];
+        uint32_t m_NameSize;
+        uint32_t m_ShortTitleSize;
+        uint32_t m_AboutMeSize;
+        uint32_t m_WebsiteSize;
+        uint32_t m_TwitterSize;
+        uint32_t m_LinkedinSize;
+        uint32_t m_InstagramSize;
+        uint32_t m_TelegramSize;
+        uint32_t m_DiscordSize;
     };
 
     struct Version
@@ -85,15 +85,15 @@ namespace DAppsStore
         {
             PubKey m_Publisher;
 
-            char m_Name[Publisher::NAME_MAX_SIZE];
-            char m_ShortTitle[Publisher::SHORT_TITLE_MAX_SIZE];
-            char m_AboutMe[Publisher::ABOUT_ME_MAX_SIZE];
-            char m_Website[Publisher::WEBSITE_MAX_SIZE];
-            char m_Twitter[Publisher::SOCIAL_NICK_MAX_SIZE];
-            char m_Linkedin[Publisher::SOCIAL_NICK_MAX_SIZE];
-            char m_Instagram[Publisher::SOCIAL_NICK_MAX_SIZE];
-            char m_Telegram[Publisher::SOCIAL_NICK_MAX_SIZE];
-            char m_Discord[Publisher::SOCIAL_NICK_MAX_SIZE];
+            uint32_t m_NameSize;
+            uint32_t m_ShortTitleSize;
+            uint32_t m_AboutMeSize;
+            uint32_t m_WebsiteSize;
+            uint32_t m_TwitterSize;
+            uint32_t m_LinkedinSize;
+            uint32_t m_InstagramSize;
+            uint32_t m_TelegramSize;
+            uint32_t m_DiscordSize;
         };
 
         struct AddPublisher: public PublisherBase
