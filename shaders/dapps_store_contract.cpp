@@ -24,7 +24,7 @@ namespace DAppsStore
 
         // if the publisher exists then abort
         Env::Halt_if(Env::LoadVar(&key, sizeof(key), nullptr, 0, KeyTag::Internal) > 0);
-        uint32_t publisherSize = sizeof(Publisher) + args.m_NameSize + args.m_ShortTitleSize + args.m_AboutMeSize +
+        const uint32_t publisherSize = sizeof(Publisher) + args.m_NameSize + args.m_ShortTitleSize + args.m_AboutMeSize +
             args.m_WebsiteSize + args.m_TwitterSize + args.m_LinkedinSize + args.m_InstagramSize +
             args.m_TelegramSize + args.m_DiscordSize;
         auto* publisher = static_cast<Publisher*>(Env::Heap_Alloc(publisherSize));
@@ -54,7 +54,7 @@ namespace DAppsStore
 
         // if the publisher is missing then abort
         Env::Halt_if(Env::LoadVar(&key, sizeof(key), nullptr, 0, KeyTag::Internal) < sizeof(Publisher));
-        uint32_t publisherSize = sizeof(Publisher) + args.m_NameSize + args.m_ShortTitleSize + args.m_AboutMeSize +
+        const uint32_t publisherSize = sizeof(Publisher) + args.m_NameSize + args.m_ShortTitleSize + args.m_AboutMeSize +
             args.m_WebsiteSize + args.m_TwitterSize + args.m_LinkedinSize + args.m_InstagramSize +
             args.m_TelegramSize + args.m_DiscordSize;
         auto* publisher = static_cast<Publisher*>(Env::Heap_Alloc(publisherSize));
@@ -89,26 +89,28 @@ namespace DAppsStore
         DApp::Key key;
         _POD_(key.m_Id) = args.m_Id;
 
-        DApp dapp;
         // if the dapp exists then abort
-        Env::Halt_if(Env::LoadVar_T(key, dapp));
+        Env::Halt_if(Env::LoadVar(&key, sizeof(key), nullptr, 0, KeyTag::Internal) > 0);
 
-        _POD_(dapp.m_Publisher) = args.m_Publisher;
-        Env::Memcpy(dapp.m_IPFSId, args.m_IPFSId, sizeof(dapp.m_IPFSId));
-        Env::Memcpy(dapp.m_Name, args.m_Name, DApp::NAME_MAX_SIZE);
-        Env::Memcpy(dapp.m_Description, args.m_Description, DApp::DESCRIPTION_MAX_SIZE);
-        Env::Memcpy(dapp.m_ApiVersion, args.m_ApiVersion, DApp::API_VERSION_MAX_SIZE);
-        Env::Memcpy(dapp.m_MinApiVersion, args.m_MinApiVersion, DApp::API_VERSION_MAX_SIZE);
-        _POD_(dapp.m_Version) = args.m_Version;
-        dapp.m_Category = args.m_Category;
+        const uint32_t dappSize = sizeof(DApp) + args.m_NameSize + args.m_DescriptionSize +
+            args.m_ApiVersionSize + args.m_MinApiVersionSize + args.m_IconSize;
+        auto* dapp = static_cast<DApp*>(Env::Heap_Alloc(dappSize));
+
+        _POD_(dapp->m_Publisher) = args.m_Publisher;
+        Env::Memcpy(dapp->m_IPFSId, args.m_IPFSId, sizeof(dapp->m_IPFSId));
+        _POD_(dapp->m_Version) = args.m_Version;
+        dapp->m_Category = args.m_Category;
 
         BlockHeader::Info hdr;
         hdr.m_Height = Env::get_Height();
         Env::get_HdrInfo(hdr);
 
-        dapp.m_Timestamp = hdr.m_Timestamp;
+        dapp->m_Timestamp = hdr.m_Timestamp;
 
-        Env::SaveVar_T(key, dapp);
+        Env::Memcpy(static_cast<void*>(dapp + 1), static_cast<const void*>(&args + 1), dappSize - sizeof(DApp));
+
+        Env::SaveVar(&key, sizeof(key), dapp, dappSize, KeyTag::Internal);
+        Env::Heap_Free(dapp);
     }
 
     BEAM_EXPORT void Method_6(const Method::UpdateDApp& args)
@@ -116,26 +118,30 @@ namespace DAppsStore
         DApp::Key key;
         _POD_(key.m_Id) = args.m_Id;
 
-        DApp dapp;
+        DApp oldVersionOfDapp;
         // if the dapp is missing then abort
-        Env::Halt_if(!Env::LoadVar_T(key, dapp));
-        Env::AddSig(dapp.m_Publisher);
+        Env::Halt_if(Env::LoadVar(&key, sizeof(key), &oldVersionOfDapp, sizeof(oldVersionOfDapp), KeyTag::Internal) < sizeof(DApp));
+        Env::AddSig(oldVersionOfDapp.m_Publisher);
 
-        Env::Memcpy(dapp.m_IPFSId, args.m_IPFSId, sizeof(dapp.m_IPFSId));
-        Env::Memcpy(dapp.m_Name, args.m_Name, DApp::NAME_MAX_SIZE);
-        Env::Memcpy(dapp.m_Description, args.m_Description, DApp::DESCRIPTION_MAX_SIZE);
-        Env::Memcpy(dapp.m_ApiVersion, args.m_ApiVersion, DApp::API_VERSION_MAX_SIZE);
-        Env::Memcpy(dapp.m_MinApiVersion, args.m_MinApiVersion, DApp::API_VERSION_MAX_SIZE);
-        _POD_(dapp.m_Version) = args.m_Version;
-        dapp.m_Category = args.m_Category;
+        const uint32_t dappSize = sizeof(DApp) + args.m_NameSize + args.m_DescriptionSize +
+            args.m_ApiVersionSize + args.m_MinApiVersionSize + args.m_IconSize;
+        auto* dapp = static_cast<DApp*>(Env::Heap_Alloc(dappSize));
+
+        _POD_(dapp->m_Publisher) = oldVersionOfDapp.m_Publisher;
+        Env::Memcpy(dapp->m_IPFSId, args.m_IPFSId, sizeof(dapp->m_IPFSId));
+        _POD_(dapp->m_Version) = args.m_Version;
+        dapp->m_Category = args.m_Category;
 
         BlockHeader::Info hdr;
         hdr.m_Height = Env::get_Height();
         Env::get_HdrInfo(hdr);
 
-        dapp.m_Timestamp = hdr.m_Timestamp;
+        dapp->m_Timestamp = hdr.m_Timestamp;
 
-        Env::SaveVar_T(key, dapp);
+        Env::Memcpy(static_cast<void*>(dapp + 1), static_cast<const void*>(&args + 1), dappSize - sizeof(DApp));
+
+        Env::SaveVar(&key, sizeof(key), dapp, dappSize, KeyTag::Internal);
+        Env::Heap_Free(dapp);
     }
 
     BEAM_EXPORT void Method_7(const Method::DeleteDApp& args)
@@ -145,7 +151,7 @@ namespace DAppsStore
 
         DApp dapp;
         // if the dapp is missing then abort
-        Env::Halt_if(!Env::LoadVar_T(key, dapp));
+        Env::Halt_if(Env::LoadVar(&key, sizeof(key), &dapp, sizeof(dapp), KeyTag::Internal) < sizeof(DApp));
         Env::AddSig(dapp.m_Publisher);
 
         Env::DelVar_T(key);

@@ -136,73 +136,137 @@ namespace
         return true;
     }
 
-    bool ReadDAppMetadata(DAppsStore::Method::Base& args)
+    template<typename Type>
+    uint32_t EstimateDAppSize()
     {
-        if (!Env::DocGetBlobEx(DAPP_ID, &args.m_Id, sizeof(args.m_Id)))
+        uint32_t size = sizeof(Type);
+
+        size += Env::DocGetBlob(NAME, nullptr, 0);
+        size += Env::DocGetBlob(DESCRIPTION, nullptr, 0);
+        size += Env::DocGetBlob(API_VERSION, nullptr, 0);
+        size += Env::DocGetBlob(MIN_API_VERSION, nullptr, 0);
+        size += Env::DocGetBlob(ICON, nullptr, 0);
+
+        return size;
+    }
+
+    template<typename Type>
+    Type* AllocateDApp(uint32_t& size)
+    {
+        Type tmp;
+
+        tmp.m_NameSize = Env::DocGetBlob(NAME, nullptr, 0);
+        if (tmp.m_NameSize > DAppsStore::DApp::NAME_MAX_SIZE)
+        {
+            OnError("");
+            return nullptr;
+        }
+
+        tmp.m_DescriptionSize = Env::DocGetBlob(DESCRIPTION, nullptr, 0);
+        if (tmp.m_DescriptionSize > DAppsStore::DApp::DESCRIPTION_MAX_SIZE)
+        {
+            OnError("");
+            return nullptr;
+        }
+
+        tmp.m_ApiVersionSize = Env::DocGetBlob(API_VERSION, nullptr, 0);
+        if (tmp.m_ApiVersionSize > DAppsStore::DApp::API_VERSION_MAX_SIZE)
+        {
+            OnError("");
+            return nullptr;
+        }
+
+        tmp.m_MinApiVersionSize = Env::DocGetBlob(MIN_API_VERSION, nullptr, 0);
+        if (tmp.m_MinApiVersionSize > DAppsStore::DApp::API_VERSION_MAX_SIZE)
+        {
+            OnError("");
+            return nullptr;
+        }
+
+        tmp.m_IconSize = Env::DocGetBlob(ICON, nullptr, 0);
+
+        size = sizeof(Type) + tmp.m_NameSize + tmp.m_DescriptionSize + tmp.m_ApiVersionSize +
+            tmp.m_MinApiVersionSize + tmp.m_IconSize;
+
+        return static_cast<Type*>(Env::Heap_Alloc(size));
+    }
+
+    template<typename Type>
+    bool GetDAppMetadata(Type* args)
+    {
+        if (!Env::DocGetBlobEx(DAPP_ID, &args->m_Id, sizeof(args->m_Id)))
         {
             OnError("id should be specified");
             return false;
         }
 
-        if (!Env::DocGetText(IPFS_ID, args.m_IPFSId, sizeof(args.m_IPFSId)))
+        if (!Env::DocGetText(IPFS_ID, args->m_IPFSId, sizeof(args->m_IPFSId)))
         {
             OnError("ipfs id should be specified");
             return false;
         }
 
-        if (!Env::DocGetText(NAME, args.m_Name, DAppsStore::DApp::NAME_MAX_SIZE))
-        {
-            OnError("dapp name should be specified");
-            return false;
-        }
-
-        if (!Env::DocGetNum32(MAJOR, &args.m_Version.m_Major))
+        if (!Env::DocGetNum32(MAJOR, &args->m_Version.m_Major))
         {
             OnError("major should be specified");
             return false;
         }
 
-        if (!Env::DocGetNum32(MINOR, &args.m_Version.m_Minor))
+        if (!Env::DocGetNum32(MINOR, &args->m_Version.m_Minor))
         {
             OnError("minor should be specified");
             return false;
         }
 
-        if (!Env::DocGetNum32(RELEASE, &args.m_Version.m_Release))
+        if (!Env::DocGetNum32(RELEASE, &args->m_Version.m_Release))
         {
             OnError("release should be specified");
             return false;
         }
 
-        if (!Env::DocGetNum32(BUILD, &args.m_Version.m_Build))
+        if (!Env::DocGetNum32(BUILD, &args->m_Version.m_Build))
         {
             OnError("build should be specified");
             return false;
         }
 
-        if (!Env::DocGetText(DESCRIPTION, args.m_Description, DAppsStore::DApp::DESCRIPTION_MAX_SIZE))
-        {
-            OnError("description should be specified");
-            return false;
-        }
-
-        if (!Env::DocGetText(API_VERSION, args.m_ApiVersion, DAppsStore::DApp::API_VERSION_MAX_SIZE))
-        {
-            OnError("api_ver should be specified");
-            return false;
-        }
-
-        if (!Env::DocGetText(MIN_API_VERSION, args.m_MinApiVersion, DAppsStore::DApp::API_VERSION_MAX_SIZE))
-        {
-            OnError("min_api_ver should be specified");
-            return false;
-        }
-
-        if (!Env::DocGetNum32(CATEGORY, &args.m_Category))
+        if (!Env::DocGetNum32(CATEGORY, &args->m_Category))
         {
             OnError("category should be specified");
             return false;
         }
+
+        auto* pointer = reinterpret_cast<uint8_t*>(args + 1);
+
+        if (!args->m_NameSize || !Env::DocGetBlobEx(NAME, pointer, args->m_NameSize))
+        {
+            OnError("dapp name should be specified");
+            return false;
+        }
+        pointer += args->m_NameSize;
+
+        if (!args->m_DescriptionSize || !Env::DocGetBlobEx(DESCRIPTION, pointer, args->m_DescriptionSize))
+        {
+            OnError("description should be specified");
+            return false;
+        }
+        pointer += args->m_DescriptionSize;
+
+        if (!args->m_ApiVersionSize || !Env::DocGetBlobEx(API_VERSION, pointer, args->m_ApiVersionSize))
+        {
+            OnError("api_ver should be specified");
+            return false;
+        }
+        pointer += args->m_ApiVersionSize;
+
+        if (!args->m_MinApiVersionSize || !Env::DocGetBlobEx(MIN_API_VERSION, pointer, args->m_MinApiVersionSize))
+        {
+            OnError("min_api_ver should be specified");
+            return false;
+        }
+        pointer += args->m_MinApiVersionSize;
+
+        Env::DocGetBlobEx(ICON, pointer, args->m_IconSize);
 
         return true;
     }
@@ -212,14 +276,10 @@ namespace
         Env::Key_T<DAppsStore::Publisher::Key> k;
         _POD_(k.m_Prefix.m_Cid) = cid;
         _POD_(k.m_KeyInContract.m_PubKey) = pubkey;
-
-        DAppsStore::Publisher publisher;
-        if (Env::VarReader::Read_T(k, publisher))
-        {
-            return true;
-        }
-
-        return false;
+        Env::VarReader reader(k, k);
+        uint32_t sizeKey = 0;
+        uint32_t size = 0;
+        return reader.MoveNext(&k, sizeKey, nullptr, size, 0);
     }
 
     bool IsExistDApp(const ContractID& cid, const DAppsStore::DAppId& id)
@@ -227,13 +287,10 @@ namespace
         Env::Key_T<DAppsStore::DApp::Key> k;
         _POD_(k.m_Prefix.m_Cid) = cid;
         _POD_(k.m_KeyInContract.m_Id) = id;
-        DAppsStore::DApp dapp;
-        if (Env::VarReader::Read_T(k, dapp))
-        {
-            return true;
-        }
-
-        return false;
+        Env::VarReader reader(k, k);
+        uint32_t sizeKey = 0;
+        uint32_t size = 0;
+        return reader.MoveNext(&k, sizeKey, nullptr, size, 0);
     }
 
     struct Publishers
@@ -466,13 +523,10 @@ namespace manager
 
     void AddDApp()
     {
-        const uint32_t iconSize = Env::DocGetBlob(ICON, nullptr, 0);
-        const uint32_t argsSize = iconSize + sizeof(DAppsStore::Method::AddDApp);
-        auto* args = static_cast<DAppsStore::Method::AddDApp*>(Env::Heap_Alloc(argsSize));
+        uint32_t argsSize = 0;
+        auto* args = AllocateDApp<DAppsStore::Method::AddDApp>(argsSize);
 
-        Env::DocGetBlob(ICON, reinterpret_cast<uint8_t*>(args + 1), iconSize);
-
-        if (!ReadDAppMetadata(*args))
+        if (!GetDAppMetadata(args))
         {
             return;
         }
@@ -502,13 +556,10 @@ namespace manager
 
     void UpdateDApp()
     {
-        const uint32_t iconSize = Env::DocGetBlob(ICON, nullptr, 0);
-        const uint32_t argsSize = iconSize + sizeof(DAppsStore::Method::UpdateDApp);
-        auto* args = static_cast<DAppsStore::Method::UpdateDApp*>(Env::Heap_Alloc(argsSize));
+        uint32_t argsSize = 0;
+        auto* args = AllocateDApp<DAppsStore::Method::UpdateDApp>(argsSize);
 
-        Env::DocGetBlob(ICON, reinterpret_cast<uint8_t*>(args + 1), iconSize);
-
-        if (!ReadDAppMetadata(*args))
+        if (!GetDAppMetadata(args))
         {
             return;
         }
@@ -584,22 +635,32 @@ namespace manager
 
             Env::DocGroup gr("");
             Env::DocAddBlob_T(DAPP_ID, k0.m_KeyInContract.m_Id);
-            Env::DocAddText(NAME, dapp->m_Name);
-            Env::DocAddText(DESCRIPTION, dapp->m_Description);
-            Env::DocAddText(API_VERSION, dapp->m_ApiVersion);
-            Env::DocAddText(MIN_API_VERSION, dapp->m_MinApiVersion);
+
+            auto* pointer = reinterpret_cast<uint8_t*>(dapp + 1);
+
+            Env::DocAddBlob(NAME, pointer, dapp->m_NameSize);
+            pointer += dapp->m_NameSize;
+            Env::DocAddBlob(DESCRIPTION, pointer, dapp->m_DescriptionSize);
+            pointer += dapp->m_DescriptionSize;
+            Env::DocAddBlob(API_VERSION, pointer, dapp->m_ApiVersionSize);
+            pointer += dapp->m_ApiVersionSize;
+            Env::DocAddBlob(MIN_API_VERSION, pointer, dapp->m_MinApiVersionSize);
+            pointer += dapp->m_MinApiVersionSize;
+
             Env::DocAddBlob_T(PUBLISHER, dapp->m_Publisher);
             Env::DocAddText(IPFS_ID, dapp->m_IPFSId);
             Env::DocAddNum64(TIMESTAMP, dapp->m_Timestamp);
             Env::DocAddNum32(CATEGORY, dapp->m_Category);
 
-            Env::DocAddBlob(ICON, (dapp + 1), size - sizeof(DAppsStore::DApp));
+            Env::DocAddBlob(ICON, pointer, dapp->m_IconSize);
 
-            Env::DocGroup version(VERSION);
-            Env::DocAddNum32(MAJOR, dapp->m_Version.m_Major);
-            Env::DocAddNum32(MINOR, dapp->m_Version.m_Minor);
-            Env::DocAddNum32(RELEASE, dapp->m_Version.m_Release);
-            Env::DocAddNum32(BUILD, dapp->m_Version.m_Build);
+            {
+                Env::DocGroup version(VERSION);
+                Env::DocAddNum32(MAJOR, dapp->m_Version.m_Major);
+                Env::DocAddNum32(MINOR, dapp->m_Version.m_Minor);
+                Env::DocAddNum32(RELEASE, dapp->m_Version.m_Release);
+                Env::DocAddNum32(BUILD, dapp->m_Version.m_Build);
+            }
 
             Env::Heap_Free(dapp);
         }

@@ -39,6 +39,7 @@ namespace DAppsStore
         uint32_t m_InstagramSize;
         uint32_t m_TelegramSize;
         uint32_t m_DiscordSize;
+        // followed by data
     };
 
     struct Version
@@ -63,15 +64,16 @@ namespace DAppsStore
 
         PubKey m_Publisher;
         IPFSCID m_IPFSId;
-
-        char m_Name[NAME_MAX_SIZE];
-        char m_Description[DESCRIPTION_MAX_SIZE];
-        char m_ApiVersion[API_VERSION_MAX_SIZE];
-        char m_MinApiVersion[API_VERSION_MAX_SIZE];
         Version m_Version;
         Timestamp m_Timestamp;
         uint32_t m_Category;
-        // followed by icon
+
+        uint32_t m_NameSize;
+        uint32_t m_DescriptionSize;
+        uint32_t m_ApiVersionSize;
+        uint32_t m_MinApiVersionSize;
+        uint32_t m_IconSize;
+        // followed by data
     };
 
     namespace Method
@@ -99,23 +101,26 @@ namespace DAppsStore
         struct AddPublisher: public PublisherBase
         {
             static const uint32_t METHOD_ID = 3;
+            // followed by data
         };
 
         struct UpdatePublisher: public PublisherBase
         {
             static const uint32_t METHOD_ID = 4;
+            // followed by data
         };
 
         struct Base
         {
             DAppId m_Id;
             IPFSCID m_IPFSId;
-            char m_Name[DApp::NAME_MAX_SIZE];
-            char m_Description[DApp::DESCRIPTION_MAX_SIZE];
-            char m_ApiVersion[DApp::API_VERSION_MAX_SIZE];
-            char m_MinApiVersion[DApp::API_VERSION_MAX_SIZE];
             Version m_Version;
             uint32_t m_Category;
+
+            uint32_t m_NameSize;
+            uint32_t m_DescriptionSize;
+            uint32_t m_ApiVersionSize;
+            uint32_t m_MinApiVersionSize;
             uint32_t m_IconSize;
         };
 
@@ -124,13 +129,13 @@ namespace DAppsStore
             static const uint32_t METHOD_ID = 5;
 
             PubKey m_Publisher;
-            // followed by icon
+            // followed by data
         };
 
         struct UpdateDApp: public Base
         {
             static const uint32_t METHOD_ID = 6;
-            // followed by icon
+            // followed by data
         };
 
         struct DeleteDApp
