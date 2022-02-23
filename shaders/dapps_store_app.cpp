@@ -188,7 +188,10 @@ namespace
         size = sizeof(Type) + tmp.m_NameSize + tmp.m_DescriptionSize + tmp.m_ApiVersionSize +
             tmp.m_MinApiVersionSize + tmp.m_IconSize;
 
-        return static_cast<Type*>(Env::Heap_Alloc(size));
+        auto* dapp = static_cast<Type*>(Env::Heap_Alloc(size));
+        _POD_(*dapp) = tmp;
+
+        return dapp;
     }
 
     template<typename Type>
@@ -237,7 +240,6 @@ namespace
         }
 
         auto* pointer = reinterpret_cast<uint8_t*>(args + 1);
-
         if (!args->m_NameSize || !Env::DocGetBlobEx(NAME, pointer, args->m_NameSize))
         {
             OnError("dapp name should be specified");
@@ -277,7 +279,7 @@ namespace
         _POD_(k.m_Prefix.m_Cid) = cid;
         _POD_(k.m_KeyInContract.m_PubKey) = pubkey;
         Env::VarReader reader(k, k);
-        uint32_t sizeKey = 0;
+        uint32_t sizeKey = sizeof(k);
         uint32_t size = 0;
         return reader.MoveNext(&k, sizeKey, nullptr, size, 0);
     }
@@ -288,7 +290,7 @@ namespace
         _POD_(k.m_Prefix.m_Cid) = cid;
         _POD_(k.m_KeyInContract.m_Id) = id;
         Env::VarReader reader(k, k);
-        uint32_t sizeKey = 0;
+        uint32_t sizeKey = sizeof(k);
         uint32_t size = 0;
         return reader.MoveNext(&k, sizeKey, nullptr, size, 0);
     }

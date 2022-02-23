@@ -82,9 +82,8 @@ namespace DAppsStore
 
         Publisher::Key publisherKey;
         _POD_(publisherKey.m_PubKey) = args.m_Publisher;
-        Publisher publisher;
         // if the publisher is missing then abort
-        Env::Halt_if(!Env::LoadVar_T(publisherKey, publisher));
+        Env::Halt_if(Env::LoadVar(&publisherKey, sizeof(publisherKey), nullptr, 0, KeyTag::Internal) < sizeof(Publisher));
 
         DApp::Key key;
         _POD_(key.m_Id) = args.m_Id;
@@ -96,6 +95,11 @@ namespace DAppsStore
             args.m_ApiVersionSize + args.m_MinApiVersionSize + args.m_IconSize;
         auto* dapp = static_cast<DApp*>(Env::Heap_Alloc(dappSize));
 
+        dapp->m_NameSize = args.m_NameSize;
+        dapp->m_DescriptionSize = args.m_DescriptionSize;
+        dapp->m_ApiVersionSize = args.m_ApiVersionSize;
+        dapp->m_MinApiVersionSize = args.m_MinApiVersionSize;
+        dapp->m_IconSize = args.m_IconSize;
         _POD_(dapp->m_Publisher) = args.m_Publisher;
         Env::Memcpy(dapp->m_IPFSId, args.m_IPFSId, sizeof(dapp->m_IPFSId));
         _POD_(dapp->m_Version) = args.m_Version;
@@ -127,6 +131,11 @@ namespace DAppsStore
             args.m_ApiVersionSize + args.m_MinApiVersionSize + args.m_IconSize;
         auto* dapp = static_cast<DApp*>(Env::Heap_Alloc(dappSize));
 
+        dapp->m_NameSize = args.m_NameSize;
+        dapp->m_DescriptionSize = args.m_DescriptionSize;
+        dapp->m_ApiVersionSize = args.m_ApiVersionSize;
+        dapp->m_MinApiVersionSize = args.m_MinApiVersionSize;
+        dapp->m_IconSize = args.m_IconSize;
         _POD_(dapp->m_Publisher) = oldVersionOfDapp.m_Publisher;
         Env::Memcpy(dapp->m_IPFSId, args.m_IPFSId, sizeof(dapp->m_IPFSId));
         _POD_(dapp->m_Version) = args.m_Version;
