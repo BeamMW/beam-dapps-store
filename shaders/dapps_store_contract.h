@@ -7,6 +7,9 @@ namespace DAppsStore
     using IPFSCID = char[47];
     typedef uint8_t TagType;
     typedef Opaque<16> DAppId;
+    typedef uint16_t ShaderVersionType;
+
+    static const ShaderVersionType SHADER_VERSION = 0;
 
     namespace Tags
     {
@@ -20,6 +23,7 @@ namespace DAppsStore
     {
         struct Key
         {
+            ShaderVersionType m_Version = SHADER_VERSION;
             TagType m_Type = Tags::PUBLISHER;
             PubKey m_PubKey;
         };
@@ -54,6 +58,7 @@ namespace DAppsStore
     {
         struct Key
         {
+            ShaderVersionType m_Version = SHADER_VERSION;
             TagType m_Type = Tags::DAPP;
             DAppId m_Id;
         };

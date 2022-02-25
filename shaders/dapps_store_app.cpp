@@ -705,6 +705,7 @@ BEAM_EXPORT void Method_0()
         Env::DocAddText(DESCRIPTION, "string");
         Env::DocAddText(API_VERSION, "string");
         Env::DocAddText(MIN_API_VERSION, "string");
+        Env::DocAddText(CATEGORY, "uint32_t");
         // version
         Env::DocAddText(MAJOR, "uint32_t");
         Env::DocAddText(MINOR, "uint32_t");
@@ -722,6 +723,7 @@ BEAM_EXPORT void Method_0()
         Env::DocAddText(DESCRIPTION, "string");
         Env::DocAddText(API_VERSION, "string");
         Env::DocAddText(MIN_API_VERSION, "string");
+        Env::DocAddText(CATEGORY, "uint32_t");
         // version
         Env::DocAddText(MAJOR, "uint32_t");
         Env::DocAddText(MINOR, "uint32_t");
