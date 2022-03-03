@@ -43,7 +43,7 @@ namespace
         const char* ADD_PUBLISHER = "add_publisher";
         const char* UPDATE_PUBLISHER = "update_publisher";
         const char* VIEW_PUBLISHERS = "view_publishers";
-        const char* MY_PUBLISHER_INFO = "my_publsiher_info";
+        const char* MY_PUBLISHER_INFO = "my_publisher_info";
         const char* ADD_DAPP = "add_dapp";
         const char* UPDATE_DAPP = "update_dapp";
         const char* DELETE_DAPP = "delete_dapp";
