@@ -1,5 +1,6 @@
 #include "dapps_store_contract.h"
 #include "Shaders/app_common_impl.h"
+#include "Shaders/upgradable2/app_common_impl.h"
 
 namespace DAppsStore
 {
@@ -431,7 +432,21 @@ namespace manager
             sig.m_pID = &cid;
             sig.m_nID = sizeof(cid);
 
-            Env::GenerateKernel(&cid, DAppsStore::Method::AddPublisher::METHOD_ID, args, argsSize, nullptr, 0, &sig, 1, "add publisher to store", 1000000);
+            const uint32_t publisherSize = sizeof(DAppsStore::Publisher) + args->m_NameSize + args->m_ShortTitleSize + args->m_AboutMeSize +
+                args->m_WebsiteSize + args->m_TwitterSize + args->m_LinkedinSize + args->m_InstagramSize +
+                args->m_TelegramSize + args->m_DiscordSize;
+
+            uint32_t charge = ManagerUpgadable2::get_ChargeInvoke() +
+                Env::Cost::AddSig +
+                Env::Cost::LoadVar + // Env::Halt_if(Env::LoadVar(&key, sizeof(key), nullptr, 0, KeyTag::Internal) < sizeof(Publisher));
+                Env::Cost::HeapOp + // auto* publisher = static_cast<Publisher*>(Env::Heap_Alloc(publisherSize));
+                Env::Cost::MemOpPerByte * publisherSize +
+                Env::Cost::MemOpPerByte * (publisherSize - sizeof(DAppsStore::Publisher)) + // Env::Memcpy(static_cast<void*>(publisher + 1), static_cast<const void*>(&args + 1), publisherSize - sizeof(Publisher));
+                Env::Cost::SaveVar_For(publisherSize) +
+                Env::Cost::HeapOp + // Env::Heap_Free(publisher);
+                Env::Cost::Cycle * 100;
+
+            Env::GenerateKernel(&cid, DAppsStore::Method::AddPublisher::METHOD_ID, args, argsSize, nullptr, 0, &sig, 1, "add publisher to store", charge);
         }
 
         Env::Heap_Free(args);
@@ -453,7 +468,21 @@ namespace manager
             sig.m_pID = &cid;
             sig.m_nID = sizeof(cid);
 
-            Env::GenerateKernel(&cid, DAppsStore::Method::UpdatePublisher::METHOD_ID, args, argsSize, nullptr, 0, &sig, 1, "update publisher", 0);
+            const uint32_t publisherSize = sizeof(DAppsStore::Publisher) + args->m_NameSize + args->m_ShortTitleSize + args->m_AboutMeSize +
+                args->m_WebsiteSize + args->m_TwitterSize + args->m_LinkedinSize + args->m_InstagramSize +
+                args->m_TelegramSize + args->m_DiscordSize;
+
+            uint32_t charge = ManagerUpgadable2::get_ChargeInvoke() +
+                Env::Cost::AddSig +
+                Env::Cost::LoadVar + // Env::Halt_if(Env::LoadVar(&key, sizeof(key), nullptr, 0, KeyTag::Internal) < sizeof(Publisher));
+                Env::Cost::HeapOp + // auto* publisher = static_cast<Publisher*>(Env::Heap_Alloc(publisherSize));
+                Env::Cost::MemOpPerByte * publisherSize +
+                Env::Cost::MemOpPerByte * (publisherSize - sizeof(DAppsStore::Publisher)) + // Env::Memcpy(static_cast<void*>(publisher + 1), static_cast<const void*>(&args + 1), publisherSize - sizeof(Publisher));
+                Env::Cost::SaveVar_For(publisherSize) +
+                Env::Cost::HeapOp + // Env::Heap_Free(publisher);
+                Env::Cost::Cycle * 100;
+
+            Env::GenerateKernel(&cid, DAppsStore::Method::UpdatePublisher::METHOD_ID, args, argsSize, nullptr, 0, &sig, 1, "update publisher", charge);
         }
 
         Env::Heap_Free(args);
@@ -551,7 +580,24 @@ namespace manager
         sig.m_pID = &cid;
         sig.m_nID = sizeof(cid);
 
-        Env::GenerateKernel(&cid, DAppsStore::Method::AddDApp::METHOD_ID, args, argsSize, nullptr, 0, &sig, 1, "add dapp to store", 170000);
+        const uint32_t dappSize = sizeof(DAppsStore::DApp) + args->m_NameSize + args->m_DescriptionSize +
+            args->m_ApiVersionSize + args->m_MinApiVersionSize + args->m_IconSize;
+
+        uint32_t charge = ManagerUpgadable2::get_ChargeInvoke() +
+            Env::Cost::AddSig +
+            Env::Cost::LoadVar + // Env::Halt_if(Env::LoadVar(&publisherKey, sizeof(publisherKey), nullptr, 0, KeyTag::Internal) < sizeof(Publisher));
+            Env::Cost::LoadVar + // Env::Halt_if(Env::LoadVar(&key, sizeof(key), nullptr, 0, KeyTag::Internal) > 0);
+            Env::Cost::LoadVar + // Env::get_HdrInfo
+            Env::Cost::SaveVar_For(dappSize) +
+            Env::Cost::HeapOp + // auto* dapp = static_cast<DApp*>(Env::Heap_Alloc(dappSize));
+            Env::Cost::MemOpPerByte * dappSize +  
+            Env::Cost::HeapOp + // Env::Heap_Free(dapp);
+            Env::Cost::MemOpPerByte * (dappSize - sizeof(DAppsStore::DApp)) + //  Env::Memcpy(static_cast<void*>(dapp + 1), static_cast<const void*>(&args + 1), dappSize - sizeof(DApp));
+            Env::Cost::MemOpPerByte * sizeof(DAppsStore::IPFSCID) + // Env::Memcpy(dapp->m_IPFSId, args.m_IPFSId, sizeof(dapp->m_IPFSId));
+            Env::Cost::MemOpPerByte * (sizeof(PubKey) + sizeof(DAppsStore::DApp::Key) + sizeof(DAppsStore::IPFSCID) + sizeof(PubKey) + sizeof(DAppsStore::Version)) + // _POD_
+            Env::Cost::Cycle * 100;
+
+        Env::GenerateKernel(&cid, DAppsStore::Method::AddDApp::METHOD_ID, args, argsSize, nullptr, 0, &sig, 1, "add dapp to store", charge);
 
         Env::Heap_Free(args);
     }
@@ -576,7 +622,23 @@ namespace manager
         sig.m_pID = &cid;
         sig.m_nID = sizeof(cid);
 
-        Env::GenerateKernel(&cid, DAppsStore::Method::UpdateDApp::METHOD_ID, args, argsSize, nullptr, 0, &sig, 1, "update dapp", 0);
+        const uint32_t dappSize = sizeof(DAppsStore::DApp) + args->m_NameSize + args->m_DescriptionSize +
+            args->m_ApiVersionSize + args->m_MinApiVersionSize + args->m_IconSize;
+
+        uint32_t charge = ManagerUpgadable2::get_ChargeInvoke() +
+            Env::Cost::LoadVar_For(sizeof(DAppsStore::DApp)) + //Env::Halt_if(Env::LoadVar(&key, sizeof(key), &oldVersionOfDapp, sizeof(oldVersionOfDapp), KeyTag::Internal) < sizeof(DApp));
+            Env::Cost::AddSig +
+            Env::Cost::HeapOp + // auto* dapp = static_cast<DApp*>(Env::Heap_Alloc(dappSize));
+            Env::Cost::MemOpPerByte * dappSize +
+            Env::Cost::MemOpPerByte * sizeof(DAppsStore::IPFSCID) + // Env::Memcpy(dapp->m_IPFSId, args.m_IPFSId, sizeof(dapp->m_IPFSId));
+            Env::Cost::MemOpPerByte * (dappSize - sizeof(DAppsStore::DApp)) + //  Env::Memcpy(static_cast<void*>(dapp + 1), static_cast<const void*>(&args + 1), dappSize - sizeof(DApp));
+            Env::Cost::LoadVar + // Env::get_HdrInfo
+            Env::Cost::SaveVar_For(dappSize) +
+            Env::Cost::HeapOp + // Env::Heap_Free(dapp);
+            Env::Cost::MemOpPerByte * (sizeof(DAppsStore::DApp::Key) + sizeof(PubKey) + sizeof(DAppsStore::Version)) +
+            Env::Cost::Cycle * 100;
+
+        Env::GenerateKernel(&cid, DAppsStore::Method::UpdateDApp::METHOD_ID, args, argsSize, nullptr, 0, &sig, 1, "update dapp", charge);
 
         Env::Heap_Free(args);
     }
