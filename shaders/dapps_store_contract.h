@@ -66,6 +66,7 @@ namespace DAppsStore
         static const uint32_t NAME_MAX_SIZE = 30;
         static const uint32_t DESCRIPTION_MAX_SIZE = 1024;
         static const uint32_t API_VERSION_MAX_SIZE = 10;
+        static const uint32_t ICON_MAX_SIZE = 10240; // 10kb
 
         PubKey m_Publisher;
         IPFSCID m_IPFSId;
@@ -151,4 +152,17 @@ namespace DAppsStore
         };
     } // namespace Method
 #pragma pack (pop)
+
+    uint32_t calcPublisherSize(const Method::PublisherBase& args)
+    {
+        return sizeof(Publisher) + args.m_NameSize + args.m_ShortTitleSize + args.m_AboutMeSize +
+            args.m_WebsiteSize + args.m_TwitterSize + args.m_LinkedinSize + args.m_InstagramSize +
+            args.m_TelegramSize + args.m_DiscordSize;
+    };
+
+    uint32_t calcDAppSize(const Method::Base& args)
+    {
+        return sizeof(DApp) + args.m_NameSize + args.m_DescriptionSize +
+            args.m_ApiVersionSize + args.m_MinApiVersionSize + args.m_IconSize;
+    };
 } // namespace DappsStore

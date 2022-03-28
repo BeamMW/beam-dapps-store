@@ -432,9 +432,7 @@ namespace manager
             sig.m_pID = &cid;
             sig.m_nID = sizeof(cid);
 
-            const uint32_t publisherSize = sizeof(DAppsStore::Publisher) + args->m_NameSize + args->m_ShortTitleSize + args->m_AboutMeSize +
-                args->m_WebsiteSize + args->m_TwitterSize + args->m_LinkedinSize + args->m_InstagramSize +
-                args->m_TelegramSize + args->m_DiscordSize;
+            const uint32_t publisherSize = DAppsStore::calcPublisherSize(*args);
 
             uint32_t charge = ManagerUpgadable2::get_ChargeInvoke() +
                 Env::Cost::AddSig +
@@ -468,9 +466,7 @@ namespace manager
             sig.m_pID = &cid;
             sig.m_nID = sizeof(cid);
 
-            const uint32_t publisherSize = sizeof(DAppsStore::Publisher) + args->m_NameSize + args->m_ShortTitleSize + args->m_AboutMeSize +
-                args->m_WebsiteSize + args->m_TwitterSize + args->m_LinkedinSize + args->m_InstagramSize +
-                args->m_TelegramSize + args->m_DiscordSize;
+            const uint32_t publisherSize = DAppsStore::calcPublisherSize(*args);
 
             uint32_t charge = ManagerUpgadable2::get_ChargeInvoke() +
                 Env::Cost::AddSig +
@@ -580,8 +576,7 @@ namespace manager
         sig.m_pID = &cid;
         sig.m_nID = sizeof(cid);
 
-        const uint32_t dappSize = sizeof(DAppsStore::DApp) + args->m_NameSize + args->m_DescriptionSize +
-            args->m_ApiVersionSize + args->m_MinApiVersionSize + args->m_IconSize;
+        const uint32_t dappSize = DAppsStore::calcDAppSize(*args);
 
         uint32_t charge = ManagerUpgadable2::get_ChargeInvoke() +
             Env::Cost::AddSig +
@@ -622,8 +617,7 @@ namespace manager
         sig.m_pID = &cid;
         sig.m_nID = sizeof(cid);
 
-        const uint32_t dappSize = sizeof(DAppsStore::DApp) + args->m_NameSize + args->m_DescriptionSize +
-            args->m_ApiVersionSize + args->m_MinApiVersionSize + args->m_IconSize;
+        const uint32_t dappSize = DAppsStore::calcDAppSize(*args);
 
         uint32_t charge = ManagerUpgadable2::get_ChargeInvoke() +
             Env::Cost::LoadVar_For(sizeof(DAppsStore::DApp)) + //Env::Halt_if(Env::LoadVar(&key, sizeof(key), &oldVersionOfDapp, sizeof(oldVersionOfDapp), KeyTag::Internal) < sizeof(DApp));
