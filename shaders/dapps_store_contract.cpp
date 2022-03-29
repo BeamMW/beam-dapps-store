@@ -26,7 +26,8 @@ namespace DAppsStore
             Env::Halt_if(args.m_IconSize > DApp::ICON_MAX_SIZE);
         }
 
-        void processPublisher(const Method::PublisherBase& args, bool update)
+        template<typename Args>
+        void processPublisher(const Args& args, bool update)
         {
             checkPublisherSize(args);
 
@@ -64,7 +65,8 @@ namespace DAppsStore
             Env::Heap_Free(publisher);
         }
 
-        void processDApp(const Method::Base& args, const PubKey& pubkey)
+        template<typename Args>
+        void processDApp(const Args& args, const PubKey& pubkey)
         {
             checkDAppSize(args);
 
