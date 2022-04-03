@@ -16,8 +16,8 @@ namespace
     const char* IPFS_ID = "ipfs_id";
     const char* NAME = "name";
     const char* DESCRIPTION = "description";
-    const char* API_VERSION = "api_ver";
-    const char* MIN_API_VERSION = "min_api_ver";
+    const char* API_VERSION = "api_version";
+    const char* MIN_API_VERSION = "min_api_version";
     const char* DAPP_ID = "id";
     const char* VERSION = "version";
     const char* MAJOR = "major";
