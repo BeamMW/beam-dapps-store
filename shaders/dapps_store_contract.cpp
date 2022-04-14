@@ -66,14 +66,21 @@ namespace DAppsStore
         }
 
         template<typename Args>
-        void processDApp(const Args& args, const PubKey& pubkey)
+        void processDApp(const Args& args, const PubKey& pubkey, bool update)
         {
             checkDAppSize(args);
 
-            const uint32_t dappSize = calcDAppSize(args);
-            auto* dapp = static_cast<DApp*>(Env::Heap_Alloc(dappSize));
             DApp::Key key;
             _POD_(key.m_Id) = args.m_Id;
+
+            if (!update)
+            {
+                // if the dapp is exist then abort
+                Env::Halt_if(Env::LoadVar(&key, sizeof(key), nullptr, 0, KeyTag::Internal) >= sizeof(DApp));
+            }
+
+            const uint32_t dappSize = calcDAppSize(args);
+            auto* dapp = static_cast<DApp*>(Env::Heap_Alloc(dappSize));
 
             _POD_(dapp->m_Publisher) = pubkey;
             _POD_(dapp->m_Version) = args.m_Version;
@@ -156,7 +163,7 @@ namespace DAppsStore
         // if the publisher is missing then abort
         Env::Halt_if(Env::LoadVar(&publisherKey, sizeof(publisherKey), nullptr, 0, KeyTag::Internal) < sizeof(Publisher));
 
-        processDApp(args, args.m_Publisher);
+        processDApp(args, args.m_Publisher, false);
     }
 
     BEAM_EXPORT void Method_6(const Method::UpdateDApp& args)
@@ -172,7 +179,7 @@ namespace DAppsStore
         // check version
         Env::Halt_if(!checkVersion(oldVersionOfDapp.m_Version, args.m_Version));
 
-        processDApp(args, oldVersionOfDapp.m_Publisher);
+        processDApp(args, oldVersionOfDapp.m_Publisher, true);
     }
 
     BEAM_EXPORT void Method_7(const Method::DeleteDApp& args)
