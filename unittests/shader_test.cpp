@@ -17,6 +17,69 @@ namespace Shaders
 
 #include "../shaders/dapps_store_contract.h"
 
+    template <bool bToShader> void Convert(DAppsStore::Method::Create& x)
+    {
+        //ConvertOrd<bToShader>(x.m_MetadataSize);
+    }
+
+    template <bool bToShader> void Convert(DAppsStore::Method::AddPublisher& x)
+    {
+        ConvertOrd<bToShader>(x.m_NameSize);
+        ConvertOrd<bToShader>(x.m_ShortTitleSize);
+        ConvertOrd<bToShader>(x.m_AboutMeSize);
+        ConvertOrd<bToShader>(x.m_WebsiteSize);
+        ConvertOrd<bToShader>(x.m_TwitterSize);
+        ConvertOrd<bToShader>(x.m_LinkedinSize);
+        ConvertOrd<bToShader>(x.m_InstagramSize);
+        ConvertOrd<bToShader>(x.m_TelegramSize);
+        ConvertOrd<bToShader>(x.m_DiscordSize);
+    }
+
+    template <bool bToShader> void Convert(DAppsStore::Method::UpdatePublisher& x)
+    {
+        ConvertOrd<bToShader>(x.m_NameSize);
+        ConvertOrd<bToShader>(x.m_ShortTitleSize);
+        ConvertOrd<bToShader>(x.m_AboutMeSize);
+        ConvertOrd<bToShader>(x.m_WebsiteSize);
+        ConvertOrd<bToShader>(x.m_TwitterSize);
+        ConvertOrd<bToShader>(x.m_LinkedinSize);
+        ConvertOrd<bToShader>(x.m_InstagramSize);
+        ConvertOrd<bToShader>(x.m_TelegramSize);
+        ConvertOrd<bToShader>(x.m_DiscordSize);
+    }
+
+    template <bool bToShader> void Convert(DAppsStore::Method::AddDApp& x)
+    {
+        ConvertOrd<bToShader>(x.m_NameSize);
+        ConvertOrd<bToShader>(x.m_DescriptionSize);
+        ConvertOrd<bToShader>(x.m_ApiVersionSize);
+        ConvertOrd<bToShader>(x.m_MinApiVersionSize);
+        ConvertOrd<bToShader>(x.m_IconSize);
+
+        ConvertOrd<bToShader>(x.m_Version.m_Build);
+        ConvertOrd<bToShader>(x.m_Version.m_Major);
+        ConvertOrd<bToShader>(x.m_Version.m_Minor);
+        ConvertOrd<bToShader>(x.m_Version.m_Release);
+
+        ConvertOrd<bToShader>(x.m_Category);
+    }
+
+    template <bool bToShader> void Convert(DAppsStore::Method::UpdateDApp& x)
+    {
+        ConvertOrd<bToShader>(x.m_NameSize);
+        ConvertOrd<bToShader>(x.m_DescriptionSize);
+        ConvertOrd<bToShader>(x.m_ApiVersionSize);
+        ConvertOrd<bToShader>(x.m_MinApiVersionSize);
+        ConvertOrd<bToShader>(x.m_IconSize);
+
+        ConvertOrd<bToShader>(x.m_Version.m_Build);
+        ConvertOrd<bToShader>(x.m_Version.m_Major);
+        ConvertOrd<bToShader>(x.m_Version.m_Minor);
+        ConvertOrd<bToShader>(x.m_Version.m_Release);
+
+        ConvertOrd<bToShader>(x.m_Category);
+    }
+
     namespace Env
     {
         void CallFarN(const ContractID& cid, uint32_t iMethod, void* pArgs, uint32_t nArgs, uint8_t bInheritContext);
@@ -24,9 +87,9 @@ namespace Shaders
         template <typename T>
         void CallFar_T(const ContractID& cid, T& args, uint8_t bInheritContext = 0)
         {
-            //Convert<true>(args);
+            Convert<true>(args);
             CallFarN(cid, args.s_iMethod, &args, sizeof(args), bInheritContext);
-            //Convert<false>(args);
+            Convert<false>(args);
         }
     }
 
@@ -80,15 +143,16 @@ namespace beam
             void CallFar(const ContractID& cid, uint32_t iMethod, Wasm::Word pArgs, uint8_t bInheritContext) override
             {
 
-                //if (cid == m_cidPipe)
-                //{
-                //	TempFrame f(*this, cid);
-                //	switch (iMethod)
-                //	{
-                //	case 0: Shaders::Pipe::Ctor(CastArg<Shaders::Pipe::Create>(pArgs)); return;
-                //	//case 2: Shaders::Pipe::Method_2(CastArg<Shaders::Pipe::PushLocal>(pArgs)); return;
-                //	}
-                //}
+                if (cid == m_cidDAppsStore)
+                {
+                    TempFrame f(*this, cid);
+                    switch (iMethod)
+                    {
+                    //case 0: Shaders::Pipe::Ctor(CastArg<Shaders::Pipe::Create>(pArgs)); return;
+                    //case 3: Shaders::DAppsStore::DAppsStore::Method_3(CastArg<Shaders::DAppsStore::Method::AddPublisher>(pArgs)); return;
+                    //case 6: Shaders::DAppsStore::DAppsStore::Method_6(CastArg<Shaders::DAppsStore::Method::UpdateDApp>(pArgs)); return;
+                    }
+                }
 
                 ProcessorContract::CallFar(cid, iMethod, pArgs, bInheritContext);
             }
@@ -109,6 +173,20 @@ namespace beam
                 return *result;
             }
 
+            void TestContractCreation();
+            void TestAddPublisher();
+            void TestAddPublisherAgain();
+            void TestAddPublisherBigData();
+            void TestUpdatePublisher();
+            void TestUpdateUnknownPublisher();
+            void TestAddDApp();
+            void TestAddDAppAgain();
+            void TestAddDAppUnknownPublisher();
+            void TestAddDAppBigData();
+            void TestUpdateDApp();
+            void TestUpdateUnknownDApp();
+            void TestUpdateDAppWithWrongVersion();
+
             void TestAll();
         };
 
@@ -123,10 +201,308 @@ namespace beam
             }
         };
 
+        void MyProcessor::TestContractCreation()
+        {
+            Shaders::DAppsStore::Method::Create args;
+
+            verify_test(ContractCreate_T(m_cidDAppsStore, m_Code.m_DAppsStore, args));
+        }
+
+        struct AddPublisher : Shaders::DAppsStore::Method::AddPublisher
+        {
+            char m_Name[Shaders::DAppsStore::Publisher::NAME_MAX_SIZE];
+        };
+
+        struct UpdatePublisher : Shaders::DAppsStore::Method::UpdatePublisher
+        {
+            char m_Name[Shaders::DAppsStore::Publisher::NAME_MAX_SIZE];
+        };
+
+        template<typename PublisherType>
+        PublisherType GeneratePublisherArgs(uint32_t nameSize = 10)
+        {
+            PublisherType args;
+
+            args.m_NameSize = nameSize;
+            args.m_ShortTitleSize = 0;
+            args.m_AboutMeSize = 0;
+            args.m_WebsiteSize = 0;
+            args.m_TwitterSize = 0;
+            args.m_LinkedinSize = 0;
+            args.m_InstagramSize = 0;
+            args.m_TelegramSize = 0;
+            args.m_DiscordSize = 0;
+            return args;
+        }
+
+        void MyProcessor::TestAddPublisher()
+        {
+            auto args = GeneratePublisherArgs<AddPublisher>();
+
+            args.m_Publisher.m_X = 1u;
+
+            verify_test(RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+        }
+
+        void MyProcessor::TestAddPublisherAgain()
+        {
+            auto args = GeneratePublisherArgs<AddPublisher>();
+
+            args.m_Publisher.m_X = 1u;
+
+            verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+        }
+
+        void MyProcessor::TestAddPublisherBigData()
+        {
+            {
+                auto args = GeneratePublisherArgs<AddPublisher>();
+
+                args.m_Publisher.m_X = 2u;
+                args.m_NameSize = Shaders::DAppsStore::Publisher::NAME_MAX_SIZE + 1;
+
+                verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+            }
+
+            {
+                auto args = GeneratePublisherArgs<AddPublisher>();
+
+                args.m_Publisher.m_X = 2u;
+                args.m_ShortTitleSize = Shaders::DAppsStore::Publisher::SHORT_TITLE_MAX_SIZE + 1;
+
+                verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+            }
+
+            {
+                auto args = GeneratePublisherArgs<AddPublisher>();
+
+                args.m_Publisher.m_X = 2u;
+                args.m_AboutMeSize = Shaders::DAppsStore::Publisher::ABOUT_ME_MAX_SIZE + 1;
+
+                verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+            }
+
+            {
+                auto args = GeneratePublisherArgs<AddPublisher>();
+
+                args.m_Publisher.m_X = 2u;
+                args.m_WebsiteSize = Shaders::DAppsStore::Publisher::WEBSITE_MAX_SIZE + 1;
+
+                verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+            }
+
+            {
+                auto args = GeneratePublisherArgs<AddPublisher>();
+
+                args.m_Publisher.m_X = 2u;
+                args.m_TwitterSize = Shaders::DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE + 1;
+
+                verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+            }
+
+            {
+                auto args = GeneratePublisherArgs<AddPublisher>();
+
+                args.m_Publisher.m_X = 2u;
+                args.m_LinkedinSize = Shaders::DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE + 1;
+
+                verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+            }
+
+            {
+                auto args = GeneratePublisherArgs<AddPublisher>();
+
+                args.m_Publisher.m_X = 2u;
+                args.m_InstagramSize = Shaders::DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE + 1;
+
+                verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+            }
+
+            {
+                auto args = GeneratePublisherArgs<AddPublisher>();
+
+                args.m_Publisher.m_X = 2u;
+                args.m_TelegramSize = Shaders::DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE + 1;
+
+                verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+            }
+
+            {
+                auto args = GeneratePublisherArgs<AddPublisher>();
+
+                args.m_Publisher.m_X = 2u;
+                args.m_DiscordSize = Shaders::DAppsStore::Publisher::SOCIAL_NICK_MAX_SIZE + 1;
+
+                verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+            }
+        }
+
+        void MyProcessor::TestUpdatePublisher()
+        {
+            auto args = GeneratePublisherArgs<UpdatePublisher>();
+
+            args.m_Publisher.m_X = 1u;
+
+            verify_test(RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+        }
+
+        void MyProcessor::TestUpdateUnknownPublisher()
+        {
+            auto args = GeneratePublisherArgs<UpdatePublisher>();
+
+            args.m_Publisher.m_X = 2u;
+
+            verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+        }
+
+        struct AddDApp : Shaders::DAppsStore::Method::AddDApp
+        {
+            char m_Name[Shaders::DAppsStore::DApp::NAME_MAX_SIZE];
+        };
+
+        struct UpdateDApp : Shaders::DAppsStore::Method::UpdateDApp
+        {
+            char m_Name[Shaders::DAppsStore::DApp::NAME_MAX_SIZE];
+        };
+
+        template<typename DAppType>
+        DAppType GenerateDAppArgs(uint32_t nameSize = 10)
+        {
+            DAppType args;
+
+            args.m_NameSize = nameSize;
+            args.m_DescriptionSize = 0;
+            args.m_ApiVersionSize = 0;
+            args.m_MinApiVersionSize = 0;
+            args.m_IconSize = 0;
+
+            args.m_Version.m_Major = 1;
+            args.m_Version.m_Minor = 0;
+            args.m_Version.m_Release = 0;
+            args.m_Version.m_Build = 0;
+
+            args.m_Category = 0;
+
+            return args;
+        }
+
+        void MyProcessor::TestAddDApp()
+        {
+            auto args = GenerateDAppArgs<AddDApp>();
+
+            memset(args.m_Id.m_pData, 1, args.m_Id.nBytes);
+            args.m_Publisher.m_X = 1u;
+            verify_test(RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+        }
+
+        void MyProcessor::TestAddDAppAgain()
+        {
+            auto args = GenerateDAppArgs<AddDApp>();
+
+            memset(args.m_Id.m_pData, 1, args.m_Id.nBytes);
+            args.m_Publisher.m_X = 1u;
+            verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+        }
+
+        void MyProcessor::TestAddDAppUnknownPublisher()
+        {
+            auto args = GenerateDAppArgs<AddDApp>();
+
+            memset(args.m_Id.m_pData, 2, args.m_Id.nBytes);
+            args.m_Publisher.m_X = 2u;
+            verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+        }
+
+        void MyProcessor::TestAddDAppBigData()
+        {
+            {
+                auto args = GenerateDAppArgs<AddDApp>();
+
+                memset(args.m_Id.m_pData, 2, args.m_Id.nBytes);
+                args.m_Publisher.m_X = 1u;
+                args.m_ApiVersionSize = Shaders::DAppsStore::DApp::API_VERSION_MAX_SIZE + 1;
+                verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+            }
+            {
+                auto args = GenerateDAppArgs<AddDApp>();
+
+                memset(args.m_Id.m_pData, 2, args.m_Id.nBytes);
+                args.m_Publisher.m_X = 1u;
+                args.m_DescriptionSize = Shaders::DAppsStore::DApp::DESCRIPTION_MAX_SIZE + 1;
+                verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+            }
+            {
+                auto args = GenerateDAppArgs<AddDApp>();
+
+                memset(args.m_Id.m_pData, 2, args.m_Id.nBytes);
+                args.m_Publisher.m_X = 1u;
+                args.m_IconSize = Shaders::DAppsStore::DApp::ICON_MAX_SIZE + 1;
+                verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+            }
+            {
+                auto args = GenerateDAppArgs<AddDApp>();
+
+                memset(args.m_Id.m_pData, 2, args.m_Id.nBytes);
+                args.m_Publisher.m_X = 1u;
+                args.m_MinApiVersionSize = Shaders::DAppsStore::DApp::API_VERSION_MAX_SIZE + 1;
+                verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+            }
+            {
+                auto args = GenerateDAppArgs<AddDApp>();
+
+                memset(args.m_Id.m_pData, 2, args.m_Id.nBytes);
+                args.m_Publisher.m_X = 1u;
+                args.m_NameSize = Shaders::DAppsStore::DApp::NAME_MAX_SIZE + 1;
+                verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+            }
+        }
+
+        void MyProcessor::TestUpdateDApp()
+        {
+            auto args = GenerateDAppArgs<UpdateDApp>();
+
+            memset(args.m_Id.m_pData, 1, args.m_Id.nBytes);
+            args.m_Version.m_Major = 2;
+            verify_test(RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+        }
+
+        void MyProcessor::TestUpdateUnknownDApp()
+        {
+            auto args = GenerateDAppArgs<UpdateDApp>();
+
+            memset(args.m_Id.m_pData, 2, args.m_Id.nBytes);
+            args.m_Version.m_Major = 2;
+            verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+        }
+
+        void MyProcessor::TestUpdateDAppWithWrongVersion()
+        {
+            auto args = GenerateDAppArgs<UpdateDApp>();
+
+            memset(args.m_Id.m_pData, 1, args.m_Id.nBytes);
+            args.m_Version.m_Major = 0;
+            verify_test(!RunGuarded_T(m_cidDAppsStore, args.METHOD_ID, args));
+        }
 
         void MyProcessor::TestAll()
         {
             AddCode(m_Code.m_DAppsStore, "dapps_store_contract.wasm");
+
+            TestContractCreation();
+
+            TestAddPublisher();
+            TestAddPublisherAgain();
+            TestAddPublisherBigData();
+            TestUpdatePublisher();
+            TestUpdateUnknownPublisher();
+
+            TestAddDApp();
+            TestAddDAppAgain();
+            TestAddDAppUnknownPublisher();
+            TestAddDAppBigData();
+            TestUpdateDApp();
+            TestUpdateUnknownDApp();
+            TestUpdateDAppWithWrongVersion();
         }
 
         struct CidTxt
