@@ -6,6 +6,7 @@ namespace DAppsStore
     {
         void checkPublisherSize(const Method::PublisherBase& args)
         {
+            Env::Halt_if(args.m_NameSize == 0);
             Env::Halt_if(args.m_NameSize > Publisher::NAME_MAX_SIZE);
             Env::Halt_if(args.m_ShortTitleSize > Publisher::SHORT_TITLE_MAX_SIZE);
             Env::Halt_if(args.m_AboutMeSize > Publisher::ABOUT_ME_MAX_SIZE);
@@ -19,6 +20,7 @@ namespace DAppsStore
 
         void checkDAppSize(const Method::Base& args)
         {
+            Env::Halt_if(args.m_NameSize == 0);
             Env::Halt_if(args.m_NameSize > DApp::NAME_MAX_SIZE);
             Env::Halt_if(args.m_DescriptionSize > DApp::DESCRIPTION_MAX_SIZE);
             Env::Halt_if(args.m_ApiVersionSize > DApp::API_VERSION_MAX_SIZE);
